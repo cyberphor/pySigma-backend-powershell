@@ -3,7 +3,7 @@ from sigma.rule import SigmaRule
 from sigma.conversion.base import TextQueryBackend
 from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT
 from sigma.types import SigmaCompareExpression
-from sigma.pipelines.powershell import # TODO: add pipeline imports or delete this line
+# from sigma.pipelines.powershell import # TODO: add pipeline imports or delete this line
 import sigma
 import re
 from typing import ClassVar, Dict, Tuple, Pattern
@@ -108,7 +108,7 @@ class PowerShellBackend(TextQueryBackend):
         # embedded into a template, e.g. a JSON format with additional information from the Sigma rule.
         return query
 
-    def finalize_output_format1(self, queries: List[str]) -> str:
+    def finalize_output_format1(self, queries: list[str]) -> str:
         # TODO: implement the output finalization for all generated queries for the format format1 here. Usually,
         # the single generated queries are embedded into a structure, e.g. some JSON or XML that can be imported into
         # the SIEM.
@@ -119,7 +119,7 @@ class PowerShellBackend(TextQueryBackend):
         # embedded into a template, e.g. a JSON format with additional information from the Sigma rule.
         return query
 
-    def finalize_output_format2(self, queries: List[str]) -> str:
+    def finalize_output_format2(self, queries: list[str]) -> str:
         # TODO: implement the output finalization for all generated queries for the format format2 here. Usually,
         # the single generated queries are embedded into a structure, e.g. some JSON or XML that can be imported into
         # the SIEM.
