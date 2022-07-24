@@ -11,7 +11,9 @@ def sigma2powershell(rulefile: str):
     pipeline = powershell_pipeline()
     backend = PowerShellBackend(pipeline)
     rules = sigma.collection.SigmaCollection.load_ruleset([rulefile])
-    print("\n".join(backend.convert(rules, "1")))
+    queries = "\n".join(backend.convert(rules))
+    print(queries)
+    return
 
 if __name__ == "__main__":
     if args.rule_file:

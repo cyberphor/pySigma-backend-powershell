@@ -13,9 +13,9 @@ class PowerShellBackend(TextQueryBackend):
     group_expression : ClassVar[str] = "({expr})"   
 
     token_separator : str = " "     
-    or_token : ClassVar[str] = "OR"
-    and_token : ClassVar[str] = " "
-    not_token : ClassVar[str] = "!="
+    or_token : ClassVar[str] = " -or "
+    and_token : ClassVar[str] = " -and "
+    not_token : ClassVar[str] = " -not "
     eq_token : ClassVar[str] = "="  
 
     field_quote : ClassVar[str] = "'"                               
@@ -58,13 +58,13 @@ class PowerShellBackend(TextQueryBackend):
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
 
-    field_null_expression : ClassVar[str] = "{field} is null"
+    field_null_expression : ClassVar[str] = "{field} -is $null"
 
     convert_or_as_in : ClassVar[bool] = True
     convert_and_as_in : ClassVar[bool] = True
     in_expressions_allow_wildcards : ClassVar[bool] = True
     field_in_list_expression : ClassVar[str] = "{field} {op} ({list})"
-    or_in_operator : ClassVar[str] = "-in"
+    or_in_operator : ClassVar[str] = " -in "
     and_in_operator : ClassVar[str] = "contains-all"
     list_separator : ClassVar[str] = ", "
 
@@ -76,7 +76,7 @@ class PowerShellBackend(TextQueryBackend):
     deferred_separator : ClassVar[str] = "\n| "
     deferred_only_query : ClassVar[str] = "*"
     
-    def finalize_query_1(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
+    def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         detection_items = rule.detection.detections['selection'].detection_items
         for detection_item in detection_items:
             if detection_item.field == "Id":
@@ -85,13 +85,12 @@ class PowerShellBackend(TextQueryBackend):
             prefix = "Get-WinEvent -FilterHashTable @{LogName='%s';Id=%s} " % (rule.logsource.service, rule.id)
         elif rule.logsource.service:
             prefix = "Get-WinEvent -LogName '%s' | " % (rule.logsource.service)
-        logic = ''
         body = ''
         suffix = ''
         query = prefix + body + suffix
         return query
 
-    def finalize_output_1(self, queries: list[str]) -> str:
+    def finalize_output_default(self, queries: list[str]) -> str:
         # TODO: implement the output finalization for all generated queries for the format {{ format }} here. Usually,
         # the single generated queries are embedded into a structure, e.g. some JSON or XML that can be imported into
         # the SIEM.
