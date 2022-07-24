@@ -1,0 +1,15 @@
+title: Suspicious Local Account Activity
+status: test
+description: Detects suspicious local account activity by looking for Windows Event ID 4624.
+author: Victor Fernandez III
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4624
+        LogonType: 10
+    filter:
+        TargetUserName: 'Administrator'       
+    condition: selection and not filter
+level: medium

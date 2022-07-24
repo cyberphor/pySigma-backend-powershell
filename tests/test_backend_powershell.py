@@ -145,15 +145,7 @@ def test_powershell_field_name_with_whitespace(powershell_backend : PowerShellBa
 # TODO: implement tests for all backend features that don't belong to the base class defaults, e.g. features that were
 # implemented with custom code, deferred expressions etc.
 
-
-
 def test_powershell_format1_output(powershell_backend : PowerShellBackend):
     """Test for output format format1."""
     # TODO: implement a test for the output format
     pass
-
-def test_powershell_format2_output(powershell_backend : PowerShellBackend):
-    """Test for output format format2."""
-    # TODO: implement a test for the output format
-    pass
-

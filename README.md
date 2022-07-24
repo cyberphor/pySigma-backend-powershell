@@ -1,5 +1,18 @@
-## pySigma PowerShell Backend
-![GitHub](https://img.shields.io/github/license/cyberphor/pySigma-backend-powershell?color=Green) ![Status](https://img.shields.io/badge/Status-pre--release-orange)
+![License](https://img.shields.io/github/license/cyberphor/pySigma-backend-powershell?color=Green)
+![Status](https://img.shields.io/badge/Status-pre--release-orange)
+![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg)
 
+
+## pySigma PowerShell Backend
 This is the PowerShell backend for pySigma. It provides the package `sigma.backends.powershell` with the `PowerShellBackend` class.
-It will contain processing pipelines in `sigma.pipelines.powershell`. This backend is currently maintained by: [Victor Fernandez III](https://github.com/cyberphor/)
+Further, it contains the following processing pipelines in `sigma.pipelines.powershell`:
+
+* powershell_pipeline: purpose
+
+It supports the following output formats:
+
+* format_1: plain PowerShell queries
+
+This backend is currently maintained by:
+
+* [Victor Fernandez III](https://github.com/cyberphor/)
