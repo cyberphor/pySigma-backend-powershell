@@ -33,8 +33,8 @@ class PowerShellBackend(TextQueryBackend):
     add_escaped     : ClassVar[str] = "\\"
     filter_chars    : ClassVar[str] = ""
     bool_values     : ClassVar[Dict[bool, str]] = {
-        True: "true",
-        False: "false",
+        True: "$true",
+        False: "$false",
     }
 
     startswith_expression : ClassVar[str] = "startswith"
@@ -76,22 +76,41 @@ class PowerShellBackend(TextQueryBackend):
     deferred_separator : ClassVar[str] = "\n| "
     deferred_only_query : ClassVar[str] = "*"
     
+    def generate_query_prefix(self, logsource: str, id: str) -> str:
+        if logsource and id:
+            prefix = "Get-WinEvent -FilterHashTable @{LogName='%s';Id=%s} | " % (logsource, id)
+        else:
+            prefix = "Get-WinEvent -LogName '%s' | " % (logsource)
+        return prefix
+
+    def generate_query_body_condition_AND(self) -> str:
+        return 
+
+    def generate_query_body(self, rule: SigmaRule) -> str:
+        # if condition == AND:
+        #     body = generate_query_body_condition_AND()
+        body = 'Where-Object { $_.Message } | '
+        return body
+
+    def generate_query_suffix(self, event_properties: list) -> str:
+        suffix = 'Select-Object -Properties TimeCreated,' + ','.join(event_properties)
+        return suffix
+
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        detection_items = rule.detection.detections['selection'].detection_items
-        for detection_item in detection_items:
-            if detection_item.field == "Id":
-                rule.id = str(detection_item.value[0])
-        if rule.id and rule.logsource.service:
-            prefix = "Get-WinEvent -FilterHashTable @{LogName='%s';Id=%s} " % (rule.logsource.service, rule.id)
-        elif rule.logsource.service:
-            prefix = "Get-WinEvent -LogName '%s' | " % (rule.logsource.service)
-        body = ''
-        suffix = ''
-        query = prefix + body + suffix
-        return query
+        if rule.logsource.service != None:
+            rule.id = False
+            detection_items = rule.detection.detections['selection'].detection_items
+            event_properties = []
+            for detection_item in detection_items:
+                event_properties.append(detection_item.field)
+                if detection_item.field == "Id":
+                    rule.id = str(detection_item.value[0])
+            prefix = self.generate_query_prefix(rule.logsource.service, rule.id)
+            body = self.generate_query_body(rule)
+            suffix = self.generate_query_suffix(event_properties)
+            query = prefix + body + suffix
+            return query
+        return "Error: please specify a logsource (e.g., service: security)."
 
     def finalize_output_default(self, queries: list[str]) -> str:
-        # TODO: implement the output finalization for all generated queries for the format {{ format }} here. Usually,
-        # the single generated queries are embedded into a structure, e.g. some JSON or XML that can be imported into
-        # the SIEM.
         return queries

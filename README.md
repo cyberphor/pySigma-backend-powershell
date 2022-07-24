@@ -6,11 +6,11 @@
 This is the PowerShell backend for pySigma. It provides the package `sigma.backends.powershell` with the `PowerShellBackend` class.
 Further, it contains the following processing pipelines in `sigma.pipelines.powershell`:
 
-* powershell_pipeline: map Sigma rules to PowerShell cmdlets, Windows Event fields, etc. 
+* powershell_pipeline: maps Sigma rules to PowerShell cmdlets and Windows event log fields. 
 
 It supports the following output formats:
 
-* format_1: plain PowerShell queries. 
+* default: plain PowerShell queries. 
 
 This backend is currently maintained by:
 

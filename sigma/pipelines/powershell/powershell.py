@@ -27,7 +27,7 @@ def powershell_pipeline():
             ProcessingItem(
                 identifier="powershell_field_mapping",
                 transformation=FieldMappingTransformation({
-                    "EventID": "Id"
+                    "EventID": "Id",
                 })
             )
         ],
