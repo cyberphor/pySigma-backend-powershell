@@ -83,13 +83,14 @@ class PowerShellBackend(TextQueryBackend):
             prefix = "Get-WinEvent -LogName '%s' | " % (logsource)
         return prefix
 
-    def generate_query_body_condition_AND(self) -> str:
-        return 
+    def generate_query_body_ConditionAND(self, rule: SigmaRule) -> str:
+        body = 'Where-Object { $_.Message } | '
+        return body
 
     def generate_query_body(self, rule: SigmaRule) -> str:
-        # if condition == AND:
-        #     body = generate_query_body_condition_AND()
-        body = 'Where-Object { $_.Message } | '
+        condition = type(rule.detection.detections['selection'].postprocess('detections')).__name__
+        if condition == "ConditionAND":
+            body = self.generate_query_body_ConditionAND(rule)
         return body
 
     def generate_query_suffix(self, event_properties: list) -> str:
