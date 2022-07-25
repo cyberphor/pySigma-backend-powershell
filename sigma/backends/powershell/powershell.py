@@ -83,15 +83,37 @@ class PowerShellBackend(TextQueryBackend):
             prefix = "Get-WinEvent -LogName '%s' | " % (logsource)
         return prefix
 
-    def generate_query_body_ConditionAND(self, rule: SigmaRule) -> str:
+    def generate_query_body_ConditionAND(self, rule: SigmaRule, detection_items) -> str:
+        for detection_item in detection_items:
+            if detection_item.field != "Id":
+                body = 'Where-Object { $_.%s -eq } | ' % (detection_item.field)
+        return body
+
+    def generate_query_body_ConditionOR(self, rule: SigmaRule) -> str:
         body = 'Where-Object { $_.Message } | '
         return body
 
-    def generate_query_body(self, rule: SigmaRule) -> str:
-        condition = type(rule.detection.detections['selection'].postprocess('detections')).__name__
-        if condition == "ConditionAND":
-            body = self.generate_query_body_ConditionAND(rule)
+    def generate_query_body_ConditionFieldEqualsValueExpression(self, rule: SigmaRule) -> str:
+        body = 'Where-Object { $_.Message } | '
         return body
+
+    def generate_query_body_ConditionValueExpression(self, rule: SigmaRule) -> str:
+        body = 'Where-Object { $_.Message } | '
+        return body
+
+    def generate_query_body(self, rule: SigmaRule, detection_items: list[sigma.rule.SigmaDetectionItem]) -> str:
+        condition = type(rule.detection.detections['selection'].postprocess('detections'))
+        match condition:
+            case sigma.conditions.ConditionAND:
+                return self.generate_query_body_ConditionAND(rule, detection_items)
+            case sigma.conditions.ConditionOR:
+                return self.generate_query_body_ConditionOR(rule)
+            case sigma.conditions.ConditionFieldEqualsValueExpression:
+                return self.generate_query_body_ConditionFieldEqualsValueExpression(rule)
+            case sigma.conditions.ConditionValueExpression:
+                return self.generate_query_body_ConditionValueExpression(rule)  
+            case _:
+                return None
 
     def generate_query_suffix(self, event_properties: list) -> str:
         suffix = 'Select-Object -Properties TimeCreated,' + ','.join(event_properties)
@@ -107,7 +129,7 @@ class PowerShellBackend(TextQueryBackend):
                 if detection_item.field == "Id":
                     rule.id = str(detection_item.value[0])
             prefix = self.generate_query_prefix(rule.logsource.service, rule.id)
-            body = self.generate_query_body(rule)
+            body = self.generate_query_body(rule, detection_items)
             suffix = self.generate_query_suffix(event_properties)
             query = prefix + body + suffix
             return query
