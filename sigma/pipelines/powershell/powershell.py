@@ -18,7 +18,7 @@ def powershell_pipeline():
             ProcessingItem(
                 identifier=f"powershell_windows_{service}",
                 transformation=AddConditionTransformation({
-                    'LogName': "Get-WinEvent -LogName '" + source + "' | Where-Object {"
+                    'LogName': source
                 }),
                 rule_conditions=[logsource_windows(service)],
             )
@@ -42,5 +42,18 @@ def powershell_pipeline():
                     )
                 ]
             )
+        ] + [
+            ProcessingItem(
+                identifier="powershell_field_name_prefix",
+                transformation=AddFieldnamePrefixTransformation(
+                    "Get-WinEvent -LogName '" + source + "' | Where-Object {"
+                ),
+                detection_item_conditions=[
+                    IncludeFieldCondition(
+                        fields = "LogName"
+                    )
+                ],
+            )
+            for service, source in windows_logsource_mapping.items()
         ],
     )
