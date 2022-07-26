@@ -8,9 +8,9 @@ parser.add_argument('--rule-file', type = str, help = 'path to Sigma rule file')
 args = parser.parse_args()
 
 def sigma2powershell(rulefile: str):
+    rules = sigma.collection.SigmaCollection.load_ruleset([rulefile])
     pipeline = powershell_pipeline()
     backend = PowerShellBackend(pipeline)
-    rules = sigma.collection.SigmaCollection.load_ruleset([rulefile])
     queries = "\n".join(backend.convert(rules))
     print(queries)
     return

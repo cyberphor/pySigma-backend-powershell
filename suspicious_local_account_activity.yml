@@ -8,7 +8,10 @@ logsource:
 detection:
     selection:
         EventID: 4624
-        LogonType: 10
+        LogonType:
+        - 2
+        - 3
+        - 10
     filter:
         TargetUserName: 'Administrator'       
     condition: selection and not filter

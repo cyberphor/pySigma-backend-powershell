@@ -11,21 +11,17 @@ class PowerShellBackend(TextQueryBackend):
     """PowerShell backend."""
     precedence : ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
     group_expression : ClassVar[str] = "({expr})"   
-
     token_separator : str = " "     
-    or_token : ClassVar[str] = " -or "
-    and_token : ClassVar[str] = " -and "
-    not_token : ClassVar[str] = " -not "
-    eq_token : ClassVar[str] = "="  
-
-    field_quote : ClassVar[str] = "'"                               
+    or_token : ClassVar[str] = "-or"
+    and_token : ClassVar[str] = "-and"
+    not_token : ClassVar[str] = "-not"
+    eq_token : ClassVar[str] = " = "  
+    field_quote : ClassVar[str] = None                               
     field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")
     field_quote_pattern_negation : ClassVar[bool] = True
-
     field_escape : ClassVar[str] = "\\"
     field_escape_quote : ClassVar[bool] = True
     field_escape_pattern : ClassVar[Pattern] = re.compile("\\s")
-
     str_quote       : ClassVar[str] = '"'
     escape_char     : ClassVar[str] = "\\"
     wildcard_multi  : ClassVar[str] = "*"
@@ -36,20 +32,16 @@ class PowerShellBackend(TextQueryBackend):
         True: "$true",
         False: "$false",
     }
-
     startswith_expression : ClassVar[str] = "startswith"
     endswith_expression   : ClassVar[str] = "endswith"
-    contains_expression   : ClassVar[str] = "contains"
-    wildcard_match_expression : ClassVar[str] = "match"
-
+    contains_expression   : ClassVar[str] = "-contains"
+    wildcard_match_expression : ClassVar[str] = "-match"
     re_expression : ClassVar[str] = "{field}=~{regex}"
     re_escape_char : ClassVar[str] = "\\"
     re_escape : ClassVar[Tuple[str]] = ()
-
     cidr_wildcard : ClassVar[str] = "*"
     cidr_expression : ClassVar[str] = "cidrmatch({field}, {value})"
     cidr_in_list_expression : ClassVar[str] = "{field} in ({value})"
-
     compare_op_expression : ClassVar[str] = "{field}{operator}{value}"
     compare_operators : ClassVar[Dict[SigmaCompareExpression.CompareOperators, str]] = {
         SigmaCompareExpression.CompareOperators.LT  : "<",
@@ -57,9 +49,7 @@ class PowerShellBackend(TextQueryBackend):
         SigmaCompareExpression.CompareOperators.GT  : ">",
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
-
     field_null_expression : ClassVar[str] = "{field} -is $null"
-
     convert_or_as_in : ClassVar[bool] = True
     convert_and_as_in : ClassVar[bool] = True
     in_expressions_allow_wildcards : ClassVar[bool] = True
@@ -67,71 +57,22 @@ class PowerShellBackend(TextQueryBackend):
     or_in_operator : ClassVar[str] = " -in "
     and_in_operator : ClassVar[str] = "contains-all"
     list_separator : ClassVar[str] = ", "
-
     unbound_value_str_expression : ClassVar[str] = '"{value}"'
     unbound_value_num_expression : ClassVar[str] = '{value}'
     unbound_value_re_expression : ClassVar[str] = '_=~{value}'
-
     deferred_start : ClassVar[str] = "\n| "
     deferred_separator : ClassVar[str] = "\n| "
     deferred_only_query : ClassVar[str] = "*"
-    
-    def generate_query_prefix(self, logsource: str, id: str) -> str:
-        if logsource and id:
-            prefix = "Get-WinEvent -FilterHashTable @{LogName='%s';Id=%s} | " % (logsource, id)
-        else:
-            prefix = "Get-WinEvent -LogName '%s' | " % (logsource)
-        return prefix
-
-    def generate_query_body_ConditionAND(self, rule: SigmaRule, detection_items) -> str:
-        for detection_item in detection_items:
-            if detection_item.field != "Id":
-                body = 'Where-Object { $_.%s -eq } | ' % (detection_item.field)
-        return body
-
-    def generate_query_body_ConditionOR(self, rule: SigmaRule) -> str:
-        body = 'Where-Object { $_.Message } | '
-        return body
-
-    def generate_query_body_ConditionFieldEqualsValueExpression(self, rule: SigmaRule) -> str:
-        body = 'Where-Object { $_.Message } | '
-        return body
-
-    def generate_query_body_ConditionValueExpression(self, rule: SigmaRule) -> str:
-        body = 'Where-Object { $_.Message } | '
-        return body
-
-    def generate_query_body(self, rule: SigmaRule, detection_items: list[sigma.rule.SigmaDetectionItem]) -> str:
-        condition = type(rule.detection.detections['selection'].postprocess('detections'))
-        match condition:
-            case sigma.conditions.ConditionAND:
-                return self.generate_query_body_ConditionAND(rule, detection_items)
-            case sigma.conditions.ConditionOR:
-                return self.generate_query_body_ConditionOR(rule)
-            case sigma.conditions.ConditionFieldEqualsValueExpression:
-                return self.generate_query_body_ConditionFieldEqualsValueExpression(rule)
-            case sigma.conditions.ConditionValueExpression:
-                return self.generate_query_body_ConditionValueExpression(rule)  
-            case _:
-                return None
 
     def generate_query_suffix(self, event_properties: list) -> str:
-        suffix = 'Select-Object -Properties TimeCreated,' + ','.join(event_properties)
+        suffix = " } | Select-Object -Properties TimeCreated" + ",".join(event_properties)
         return suffix
 
-    def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
+    def finalize_query_default(self, rule: SigmaRule, body: str, index: int, state: ConversionState) -> str:
         if rule.logsource.service != None:
-            rule.id = False
-            detection_items = rule.detection.detections['selection'].detection_items
-            event_properties = []
-            for detection_item in detection_items:
-                event_properties.append(detection_item.field)
-                if detection_item.field == "Id":
-                    rule.id = str(detection_item.value[0])
-            prefix = self.generate_query_prefix(rule.logsource.service, rule.id)
-            body = self.generate_query_body(rule, detection_items)
+            event_properties = ['']
             suffix = self.generate_query_suffix(event_properties)
-            query = prefix + body + suffix
+            query = body + suffix
             return query
         return "Error: please specify a logsource (e.g., service: security)."
 
