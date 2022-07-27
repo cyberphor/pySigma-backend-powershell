@@ -1,5 +1,5 @@
 from sigma.pipelines.common import logsource_windows
-from sigma.processing.transformations import AddConditionTransformation, AddFieldnamePrefixTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, SetStateTransformation
+from sigma.processing.transformations import AddConditionTransformation, AddFieldnamePrefixTransformation, AddFieldnameSuffixTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, SetStateTransformation
 from sigma.processing.conditions import LogsourceCondition, IncludeFieldCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
 
@@ -18,7 +18,7 @@ def powershell_pipeline():
             ProcessingItem(
                 identifier=f"powershell_windows_{service}",
                 transformation=AddConditionTransformation({
-                    'LogName': source
+                    "LogName": source
                 }),
                 rule_conditions=[logsource_windows(service)],
             )
@@ -38,22 +38,9 @@ def powershell_pipeline():
                 ),
                 detection_item_conditions=[
                     ExcludeFieldCondition(
-                        fields = "LogName"
+                        fields = ["LogName","Id"]
                     )
                 ]
             )
-        ] + [
-            ProcessingItem(
-                identifier="powershell_field_name_prefix",
-                transformation=AddFieldnamePrefixTransformation(
-                    "Get-WinEvent -LogName '" + source + "' | Where-Object {"
-                ),
-                detection_item_conditions=[
-                    IncludeFieldCondition(
-                        fields = "LogName"
-                    )
-                ],
-            )
-            for service, source in windows_logsource_mapping.items()
-        ],
+        ]
     )

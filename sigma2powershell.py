@@ -17,6 +17,7 @@ def sigma2powershell(rulefile: str):
 
 if __name__ == "__main__":
     if args.rule_file:
+        print("Import-Module .\Read-WinEvent.psm1")
         sigma2powershell(args.rule_file)
     else:
         parser.print_help()

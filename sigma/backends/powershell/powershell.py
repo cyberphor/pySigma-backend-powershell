@@ -64,15 +64,42 @@ class PowerShellBackend(TextQueryBackend):
     deferred_separator : ClassVar[str] = "\n| "
     deferred_only_query : ClassVar[str] = "*"
 
-    def generate_query_suffix(self, event_properties: list) -> str:
-        suffix = " } | Select-Object -Properties TimeCreated" + ",".join(event_properties)
+    def generate_query_prefix(self, processed_rule) -> list[str]:
+        logname = processed_rule.split("LogName = ")[1].split(" ")[0]
+        if "Id" in processed_rule:
+            event_id = processed_rule.split("Id = ")[1].split(" ")[0]
+            prefix = 'Get-WinEvent -FilterHashTable @{LogName=%s;Id=%s} | Read-WinEvent | Where-Object { ' % (logname, event_id)
+        else:
+            event_id = False
+            prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { ' % (logname)
+        return logname, event_id, prefix
+
+    def generate_query_body(self, logname, event_id, processed_rule) -> str:
+        logname = "LogName = " + logname + " -and "
+        body = processed_rule.replace(logname,"")
+        if event_id:
+            event_id = "Id = " + event_id + " -and "
+            body = body.replace(event_id,"")
+        return body
+
+    def generate_query_suffix(self, rule) -> str:
+        event_properties = ['']
+        for detection_item in rule.detection.detections["filter"].detection_items:
+            event_property = detection_item.field.replace("$_.","")
+            event_properties.append(event_property)
+        for detection_item in rule.detection.detections["selection"].detection_items:
+            if detection_item.field != "Id":
+                event_property = detection_item.field.replace("$_.","")
+                event_properties.append(event_property)
+        suffix = " } | Select-Object -Property TimeCreated" + ", ".join(event_properties)
         return suffix
 
-    def finalize_query_default(self, rule: SigmaRule, body: str, index: int, state: ConversionState) -> str:
+    def finalize_query_default(self, rule: SigmaRule, processed_rule: str, index: int, state: ConversionState) -> str:
         if rule.logsource.service != None:
-            event_properties = ['']
-            suffix = self.generate_query_suffix(event_properties)
-            query = body + suffix
+            logname, event_id, prefix = self.generate_query_prefix(processed_rule)
+            body = self.generate_query_body(logname, event_id, processed_rule)
+            suffix = self.generate_query_suffix(rule)
+            query = prefix + body + suffix
             return query
         return "Error: please specify a logsource (e.g., service: security)."
 
