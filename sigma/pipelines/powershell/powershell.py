@@ -37,7 +37,7 @@ def powershell_pipeline():
                 transformation=AddFieldnamePrefixTransformation(
                     "$_."
                 ),
-                detection_item_conditions=[
+                field_name_conditions=[
                     ExcludeFieldCondition(
                         fields = ["LogName","Id"]
                     )

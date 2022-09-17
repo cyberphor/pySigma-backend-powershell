@@ -65,7 +65,7 @@ class PowerShellBackend(TextQueryBackend):
     deferred_only_query : ClassVar[str] = "*"
 
     def generate_query_prefix(self, processed_rule) -> list[str]:
-        logname = processed_rule.split("LogName = ")[1].split(" ")[0]
+        logname = processed_rule.split("LogName=")[1].split(" ")[0]
         if "Id" in processed_rule:
             event_id = processed_rule.split("Id = ")[1].split(" ")[0]
             prefix = 'Get-WinEvent -FilterHashTable @{LogName=%s;Id=%s} | Read-WinEvent | Where-Object { ' % (logname, event_id)
@@ -101,6 +101,8 @@ class PowerShellBackend(TextQueryBackend):
             suffix = self.generate_query_suffix(rule)
             query = prefix + body + suffix
             return query
+        # TODO: replace "logsource.service" with "logsource.service OR logsource.category"
+        # ensure backend generates a query even if no logname is specified (for situations where a log file will be analyzed)
         return "Error: please specify a logsource (e.g., service: security)."
 
     def finalize_output_default(self, queries: list[str]) -> str:
