@@ -64,23 +64,32 @@ class PowerShellBackend(TextQueryBackend):
     deferred_separator : ClassVar[str] = "\n| "
     deferred_only_query : ClassVar[str] = "*"
 
-    def generate_query_prefix(self, processed_rule) -> list[str]:
-        logname = processed_rule.split("LogName=")[1].split(" ")[0]
-        if "Id" in processed_rule:
-            event_id = processed_rule.split("Id = ")[1].split(" ")[0]
-            prefix = 'Get-WinEvent -FilterHashTable @{LogName=%s;Id=%s} | Read-WinEvent | Where-Object { ' % (logname, event_id)
+    def get_logname(self, rule):
+        if rule.logsource.service == None:
+            return None
         else:
-            event_id = False
-            prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { ' % (logname)
-        return logname, event_id, prefix
+            return rule.logsource.service
 
-    def generate_query_body(self, logname, event_id, processed_rule) -> str:
-        logname = "LogName = " + logname + " -and "
-        body = processed_rule.replace(logname,"")
-        if event_id:
-            event_id = "Id = " + event_id + " -and "
-            body = body.replace(event_id,"")
-        return body
+    def get_event_id(self, rule):
+        event_id = None
+        for detection_item in rule.detection.detections['selection'].detection_items:
+            if detection_item.field == "Id":
+                event_id = str(detection_item.value[0])
+        return event_id
+        
+    def generate_query_prefix(self, logname, event_id) -> list[str]:
+        if (logname != None) and (event_id != None):
+            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | \n' % (logname, event_id)
+            prefix = prefix + 'Read-WinEvent | \n'
+            prefix = prefix + 'Where-Object { '
+        else:
+            prefix = 'Get-WinEvent -LogName "%s" | \n' % (logname)
+            prefix = prefix + 'Read-WinEvent | \n' 
+            prefix = prefix + 'Where-Object { ' 
+        return prefix
+
+    def generate_query_body(self, processed_rule, logname, event_id) -> str:
+        return processed_rule
 
     def generate_query_suffix(self, rule) -> str:
         event_properties = ['']
@@ -91,19 +100,18 @@ class PowerShellBackend(TextQueryBackend):
             if detection_item.field != "Id":
                 event_property = detection_item.field.replace("$_.","")
                 event_properties.append(event_property)
-        suffix = " } | Select-Object -Property TimeCreated" + ", ".join(event_properties)
+        suffix = " } | \n"
+        suffix = suffix + "Select-Object -Property TimeCreated" + ", ".join(event_properties)
         return suffix
 
     def finalize_query_default(self, rule: SigmaRule, processed_rule: str, index: int, state: ConversionState) -> str:
-        if rule.logsource.service != None:
-            logname, event_id, prefix = self.generate_query_prefix(processed_rule)
-            body = self.generate_query_body(logname, event_id, processed_rule)
-            suffix = self.generate_query_suffix(rule)
-            query = prefix + body + suffix
-            return query
-        # TODO: replace "logsource.service" with "logsource.service OR logsource.category"
-        # ensure backend generates a query even if no logname is specified (for situations where a log file will be analyzed)
-        return "Error: please specify a logsource (e.g., service: security)."
+        logname = self.get_logname(rule)
+        event_id = self.get_event_id(rule)
+        prefix = self.generate_query_prefix(logname, event_id)
+        body = self.generate_query_body(processed_rule, logname, event_id)
+        suffix = self.generate_query_suffix(rule)
+        query = prefix + body + suffix
+        return query
 
     def finalize_output_default(self, queries: list[str]) -> str:
         return queries
