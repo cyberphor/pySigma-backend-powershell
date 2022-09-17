@@ -8,6 +8,7 @@ windows_logsource_mapping = {
     "application": "Application",
     "system": "System",
     "sysmon": "Microsoft-Windows-Sysmon/Operational",
+    "ps_script": "Microsoft-Windows-PowerShell/Operational"
 }
 
 def powershell_pipeline():
