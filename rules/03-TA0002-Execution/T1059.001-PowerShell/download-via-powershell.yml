@@ -1,0 +1,19 @@
+title: Download via PowerShell
+status: experimental
+description: Detects files are downloaded via PowerShell.
+author: Victor Fernandez III
+logsource:
+    product: windows
+    category: ps_script
+detection:
+    selection:
+        EventId: 4104
+        ScriptBlockText|startswith:
+        - "IEX"
+        - "Invoke-Expression"
+    condition: selection
+falsepositives:
+    - Admin activity
+fields:
+    - ScriptBlockText
+level: low
