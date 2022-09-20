@@ -1,3 +1,4 @@
+from cmath import log
 from sigma.conversion.state import ConversionState
 from sigma.rule import SigmaRule
 from sigma.conversion.base import TextQueryBackend
@@ -15,7 +16,7 @@ class PowerShellBackend(TextQueryBackend):
     or_token : ClassVar[str] = "-or"
     and_token : ClassVar[str] = "-and"
     not_token : ClassVar[str] = "-not"
-    eq_token : ClassVar[str] = " = "  
+    eq_token : ClassVar[str] = " -eq " 
     field_quote : ClassVar[str] = None                               
     field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")
     field_quote_pattern_negation : ClassVar[bool] = True
@@ -42,7 +43,7 @@ class PowerShellBackend(TextQueryBackend):
     cidr_wildcard : ClassVar[str] = "*"
     cidr_expression : ClassVar[str] = "cidrmatch({field}, {value})"
     cidr_in_list_expression : ClassVar[str] = "{field} in ({value})"
-    compare_op_expression : ClassVar[str] = "{field}{operator}{value}"
+    compare_op_expression : ClassVar[str] = "{field} {operator} {value}"
     compare_operators : ClassVar[Dict[SigmaCompareExpression.CompareOperators, str]] = {
         SigmaCompareExpression.CompareOperators.LT  : "<",
         SigmaCompareExpression.CompareOperators.LTE : "<=",
@@ -54,7 +55,7 @@ class PowerShellBackend(TextQueryBackend):
     convert_and_as_in : ClassVar[bool] = True
     in_expressions_allow_wildcards : ClassVar[bool] = True
     field_in_list_expression : ClassVar[str] = "{field} {op} ({list})"
-    or_in_operator : ClassVar[str] = " -in "
+    or_in_operator : ClassVar[str] = "-in"
     and_in_operator : ClassVar[str] = "contains-all"
     list_separator : ClassVar[str] = ", "
     unbound_value_str_expression : ClassVar[str] = '"{value}"'
@@ -79,16 +80,18 @@ class PowerShellBackend(TextQueryBackend):
         
     def generate_query_prefix(self, logname, event_id) -> list[str]:
         if (logname != None) and (event_id != None):
-            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | \n' % (logname, event_id)
-            prefix = prefix + 'Read-WinEvent | \n'
-            prefix = prefix + 'Where-Object { '
+            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | \nRead-WinEvent | \nWhere-Object { '  % (logname, event_id) 
         else:
-            prefix = 'Get-WinEvent -LogName "%s" | \n' % (logname)
-            prefix = prefix + 'Read-WinEvent | \n' 
-            prefix = prefix + 'Where-Object { ' 
+            prefix = 'Get-WinEvent -LogName "%s" | \nRead-WinEvent | \nWhere-Object { '  % (logname)  
         return prefix
 
     def generate_query_body(self, processed_rule, logname, event_id) -> str:
+        if logname != None:
+            logname = 'LogName -eq "%s" -and ' % (logname.capitalize())
+            processed_rule = processed_rule.replace(logname,"")
+        if event_id != None:
+            event_id = 'Id -eq %s -and ' % (event_id)
+            processed_rule = processed_rule.replace(event_id,"")
         return processed_rule
 
     def generate_query_suffix(self, rule) -> str:
@@ -100,8 +103,7 @@ class PowerShellBackend(TextQueryBackend):
             if detection_item.field != "Id":
                 event_property = detection_item.field.replace("$_.","")
                 event_properties.append(event_property)
-        suffix = " } | \n"
-        suffix = suffix + "Select-Object -Property TimeCreated" + ", ".join(event_properties)
+        suffix = " } | \nSelect-Object -Property TimeCreated" + ", ".join(event_properties)
         return suffix
 
     def finalize_query_default(self, rule: SigmaRule, processed_rule: str, index: int, state: ConversionState) -> str:

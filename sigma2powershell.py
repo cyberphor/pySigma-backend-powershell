@@ -12,7 +12,6 @@ def sigma2powershell(rulefile: str):
     pipeline = powershell_pipeline()
     backend = PowerShellBackend(pipeline)
     queries = "\n".join(backend.convert(rules))
-    backend.convert(rules)
     print(queries)
     return
 
