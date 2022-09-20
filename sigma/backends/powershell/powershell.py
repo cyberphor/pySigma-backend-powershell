@@ -1,7 +1,7 @@
 from sigma.conversion.state import ConversionState
 from sigma.rule import SigmaRule
 from sigma.conversion.base import TextQueryBackend
-from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT
+from sigma.conditions import ConditionFieldEqualsValueExpression, ConditionItem, ConditionAND, ConditionOR, ConditionNOT
 from sigma.types import SigmaCompareExpression
 import sigma
 import re
@@ -97,13 +97,51 @@ class PowerShellBackend(TextQueryBackend):
     # TODO: implement custom methods for query elements not covered by the default backend base.
     # Documentation: https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html
 
+    def convert_condition_not(self, cond : ConditionNOT, state : ConversionState) -> Union[str, DeferredQueryExpression]:
+        """Conversion of NOT conditions."""
+        arg = cond.args[0]
+        try:
+            if arg.__class__ in self.precedence:        # group if AND or OR condition is negated
+                return self.not_token + self.token_separator + self.convert_condition_group(arg, state)
+            else:
+                expr = self.convert_condition(arg, state)
+                if isinstance(expr, DeferredQueryExpression):      # negate deferred expression and pass it to parent
+                    return expr.negate()
+                else:                                             # convert negated expression to string
+                    return '{field} -ne "{value}"'.format(field=arg.field, value=arg.value)
+        except TypeError:       # pragma: no cover
+            raise NotImplementedError("Operator 'not' not supported by the backend")
+
+    def get_logname(self, rule) -> str:
+        if rule.logsource.service == None:
+            return None
+        else:
+            return rule.logsource.service
+
+    def get_event_id(self, rule) -> str:
+        event_id = None
+        for detection_item in rule.detection.detections['selection'].detection_items:
+            if detection_item.field == "EventID":
+                event_id = str(detection_item.value[0])
+        return event_id
+        
+    def generate_query_prefix(self, logname, event_id) -> list[str]:
+        if (logname != None) and (event_id != None):
+            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | \nRead-WinEvent | \nWhere-Object { '  % (logname, event_id) 
+        else:
+            prefix = 'Get-WinEvent -LogName "%s" | \nRead-WinEvent | \nWhere-Object { '  % (logname)  
+        return prefix
+
+    def generate_query_suffix(self, rule) -> str:
+        return ' }'
+
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        # TODO: implement the per-query output for the output format {{ format }} here. Usually, the generated query is
-        # embedded into a template, e.g. a JSON format with additional information from the Sigma rule.
-        return query
+        if rule.logsource.product == "windows":
+            logname = self.get_logname(rule)
+            event_id = self.get_event_id(rule)
+            prefix = self.generate_query_prefix(logname, event_id)
+            suffix = self.generate_query_suffix(rule)
+            return prefix + query + suffix
 
     def finalize_output_default(self, queries: List[str]) -> str:
-        # TODO: implement the output finalization for all generated queries for the format {{ format }} here. Usually,
-        # the single generated queries are embedded into a structure, e.g. some JSON or XML that can be imported into
-        # the SIEM.
         return "\n".join(queries)
