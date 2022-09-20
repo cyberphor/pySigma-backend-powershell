@@ -1,4 +1,3 @@
-from cmath import log
 from sigma.conversion.state import ConversionState
 from sigma.rule import SigmaRule
 from sigma.conversion.base import TextQueryBackend
@@ -6,114 +5,105 @@ from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, Condition
 from sigma.types import SigmaCompareExpression
 import sigma
 import re
-from typing import ClassVar, Dict, Tuple, Pattern
+from typing import ClassVar, Dict, Tuple, Pattern, List, Union
+from sigma.conversion.deferred import DeferredQueryExpression
 
 class PowerShellBackend(TextQueryBackend):
-    """PowerShell backend."""
+    """Powershell backend."""
+    # TODO: change the token definitions according to the syntax. Delete these not supported by your backend.
+    # See the pySigma documentation for further infromation:
+    # https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html
+    # Operator precedence: tuple of Condition{AND,OR,NOT} in order of precedence.
+    # The backend generates grouping if required
+    name : ClassVar[str] = "powershell backend"
+    formats : Dict[str, str] = {
+        "default": "Plain powershell queries"
+    }
     precedence : ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
-    group_expression : ClassVar[str] = "({expr})"   
-    token_separator : str = " "     
+    group_expression : ClassVar[str] = "({expr})"   # Expression for precedence override grouping as format string with {expr} placeholder
+    # Generated query tokens
+    token_separator : str = " "     # separator inserted between all boolean operators
     or_token : ClassVar[str] = "-or"
     and_token : ClassVar[str] = "-and"
     not_token : ClassVar[str] = "-not"
-    eq_token : ClassVar[str] = " -eq " 
-    field_quote : ClassVar[str] = None                               
-    field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")
-    field_quote_pattern_negation : ClassVar[bool] = True
-    field_escape : ClassVar[str] = "\\"
-    field_escape_quote : ClassVar[bool] = True
-    field_escape_pattern : ClassVar[Pattern] = re.compile("\\s")
-    str_quote       : ClassVar[str] = '"'
-    escape_char     : ClassVar[str] = "\\"
-    wildcard_multi  : ClassVar[str] = "*"
-    wildcard_single : ClassVar[str] = "*"
-    add_escaped     : ClassVar[str] = "\\"
-    filter_chars    : ClassVar[str] = ""
-    bool_values     : ClassVar[Dict[bool, str]] = {
-        True: "$true",
-        False: "$false",
+    eq_token : ClassVar[str] = "="  # Token inserted between field and value (without separator)
+    # String output
+    ## Fields
+    ### Quoting
+    field_quote : ClassVar[str] = "'"                               # Character used to quote field characters if field_quote_pattern matches (or not, depending on field_quote_pattern_negation). No field name quoting is done if not set.
+    field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")   # Quote field names if this pattern (doesn't) matches, depending on field_quote_pattern_negation. Field name is always quoted if pattern is not set.
+    field_quote_pattern_negation : ClassVar[bool] = False         # Negate field_quote_pattern result. Field name is quoted if pattern doesn't matches if set to True (default).
+    ### Escaping
+    field_escape : ClassVar[str] = "\\"               # Character to escape particular parts defined in field_escape_pattern.
+    field_escape_quote : ClassVar[bool] = True        # Escape quote string defined in field_quote
+    field_escape_pattern : ClassVar[Pattern] = re.compile("\\s")   # All matches of this pattern are prepended with the string contained in field_escape.
+    ## Values
+    str_quote       : ClassVar[str] = '"'     # string quoting character (added as escaping character)
+    escape_char     : ClassVar[str] = "\\"    # Escaping character for special characrers inside string
+    wildcard_multi  : ClassVar[str] = "*"     # Character used as multi-character wildcard
+    wildcard_single : ClassVar[str] = "*"     # Character used as single-character wildcard
+    add_escaped     : ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
+    filter_chars    : ClassVar[str] = ""      # Characters filtered
+    bool_values     : ClassVar[Dict[bool, str]] = {   # Values to which boolean values are mapped.
+        True: "true",
+        False: "false",
     }
+    # String matching operators. if none is appropriate eq_token is used.
     startswith_expression : ClassVar[str] = "startswith"
     endswith_expression   : ClassVar[str] = "endswith"
-    contains_expression   : ClassVar[str] = "-contains"
-    wildcard_match_expression : ClassVar[str] = "-match"
-    re_expression : ClassVar[str] = "{field}=~{regex}"
-    re_escape_char : ClassVar[str] = "\\"
-    re_escape : ClassVar[Tuple[str]] = ()
-    cidr_wildcard : ClassVar[str] = "*"
-    cidr_expression : ClassVar[str] = "cidrmatch({field}, {value})"
-    cidr_in_list_expression : ClassVar[str] = "{field} in ({value})"
-    compare_op_expression : ClassVar[str] = "{field} {operator} {value}"
+    contains_expression   : ClassVar[str] = "contains"
+    wildcard_match_expression : ClassVar[str] = "match"      # Special expression if wildcards can't be matched with the eq_token operator
+    # Regular expressions
+    re_expression : ClassVar[str] = "{field}=~{regex}"  # Regular expression query as format string with placeholders {field} and {regex}
+    re_escape_char : ClassVar[str] = "\\"               # Character used for escaping in regular expressions
+    re_escape : ClassVar[Tuple[str]] = ()               # List of strings that are escaped
+    # cidr expressions
+    cidr_wildcard : ClassVar[str] = "*"    # Character used as single wildcard
+    cidr_expression : ClassVar[str] = "cidrmatch({field}, {value})"    # CIDR expression query as format string with placeholders {field} = {value}
+    cidr_in_list_expression : ClassVar[str] = "{field} in ({value})"    # CIDR expression query as format string with placeholders {field} = in({list})
+
+    # Numeric comparison operators
+    compare_op_expression : ClassVar[str] = "{field}{operator}{value}"  # Compare operation query as format string with placeholders {field}, {operator} and {value}
+    # Mapping between CompareOperators elements and strings used as replacement for {operator} in compare_op_expression
     compare_operators : ClassVar[Dict[SigmaCompareExpression.CompareOperators, str]] = {
         SigmaCompareExpression.CompareOperators.LT  : "<",
         SigmaCompareExpression.CompareOperators.LTE : "<=",
         SigmaCompareExpression.CompareOperators.GT  : ">",
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
-    field_null_expression : ClassVar[str] = "{field} -is $null"
-    convert_or_as_in : ClassVar[bool] = True
-    convert_and_as_in : ClassVar[bool] = True
-    in_expressions_allow_wildcards : ClassVar[bool] = True
-    field_in_list_expression : ClassVar[str] = "{field} {op} ({list})"
-    or_in_operator : ClassVar[str] = "-in"
-    and_in_operator : ClassVar[str] = "contains-all"
-    list_separator : ClassVar[str] = ", "
-    unbound_value_str_expression : ClassVar[str] = '"{value}"'
-    unbound_value_num_expression : ClassVar[str] = '{value}'
-    unbound_value_re_expression : ClassVar[str] = '_=~{value}'
-    deferred_start : ClassVar[str] = "\n| "
-    deferred_separator : ClassVar[str] = "\n| "
-    deferred_only_query : ClassVar[str] = "*"
 
-    def get_logname(self, rule):
-        if rule.logsource.service == None:
-            return None
-        else:
-            return rule.logsource.service
+    # Null/None expressions
+    field_null_expression : ClassVar[str] = "{field} is null"          # Expression for field has null value as format string with {field} placeholder for field name
 
-    def get_event_id(self, rule):
-        event_id = None
-        for detection_item in rule.detection.detections['selection'].detection_items:
-            if detection_item.field == "Id":
-                event_id = str(detection_item.value[0])
-        return event_id
-        
-    def generate_query_prefix(self, logname, event_id) -> list[str]:
-        if (logname != None) and (event_id != None):
-            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | \nRead-WinEvent | \nWhere-Object { '  % (logname, event_id) 
-        else:
-            prefix = 'Get-WinEvent -LogName "%s" | \nRead-WinEvent | \nWhere-Object { '  % (logname)  
-        return prefix
+    # Field value in list, e.g. "field in (value list)" or "field containsall (value list)"
+    convert_or_as_in : ClassVar[bool] = True                   # Convert OR as in-expression
+    convert_and_as_in : ClassVar[bool] = True                    # Convert AND as in-expression
+    in_expressions_allow_wildcards : ClassVar[bool] = True       # Values in list can contain wildcards. If set to False (default) only plain values are converted into in-expressions.
+    field_in_list_expression : ClassVar[str] = "{field} {op} ({list})"  # Expression for field in list of values as format string with placeholders {field}, {op} and {list}
+    or_in_operator : ClassVar[str] = "-in"               # Operator used to convert OR into in-expressions. Must be set if convert_or_as_in is set
+    and_in_operator : ClassVar[str] = "contains-all"    # Operator used to convert AND into in-expressions. Must be set if convert_and_as_in is set
+    list_separator : ClassVar[str] = ", "               # List element separator
 
-    def generate_query_body(self, processed_rule, logname, event_id) -> str:
-        if logname != None:
-            logname = 'LogName -eq "%s" -and ' % (logname.capitalize())
-            processed_rule = processed_rule.replace(logname,"")
-        if event_id != None:
-            event_id = 'Id -eq %s -and ' % (event_id)
-            processed_rule = processed_rule.replace(event_id,"")
-        return processed_rule
+    # Value not bound to a field
+    unbound_value_str_expression : ClassVar[str] = '"{value}"'   # Expression for string value not bound to a field as format string with placeholder {value}
+    unbound_value_num_expression : ClassVar[str] = '{value}'   # Expression for number value not bound to a field as format string with placeholder {value}
+    unbound_value_re_expression : ClassVar[str] = '_=~{value}'    # Expression for regular expression not bound to a field as format string with placeholder {value}
 
-    def generate_query_suffix(self, rule) -> str:
-        event_properties = ['']
-        for detection_item in rule.detection.detections["filter"].detection_items:
-            event_property = detection_item.field.replace("$_.","")
-            event_properties.append(event_property)
-        for detection_item in rule.detection.detections["selection"].detection_items:
-            if detection_item.field != "Id":
-                event_property = detection_item.field.replace("$_.","")
-                event_properties.append(event_property)
-        suffix = " } | \nSelect-Object -Property TimeCreated" + ", ".join(event_properties)
-        return suffix
+    # Query finalization: appending and concatenating deferred query part
+    deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts
+    deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
+    deferred_only_query : ClassVar[str] = "*"            # String used as query if final query only contains deferred expression
 
-    def finalize_query_default(self, rule: SigmaRule, processed_rule: str, index: int, state: ConversionState) -> str:
-        logname = self.get_logname(rule)
-        event_id = self.get_event_id(rule)
-        prefix = self.generate_query_prefix(logname, event_id)
-        body = self.generate_query_body(processed_rule, logname, event_id)
-        suffix = self.generate_query_suffix(rule)
-        query = prefix + body + suffix
+    # TODO: implement custom methods for query elements not covered by the default backend base.
+    # Documentation: https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html
+
+    def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
+        # TODO: implement the per-query output for the output format {{ format }} here. Usually, the generated query is
+        # embedded into a template, e.g. a JSON format with additional information from the Sigma rule.
         return query
 
-    def finalize_output_default(self, queries: list[str]) -> str:
-        return queries
+    def finalize_output_default(self, queries: List[str]) -> str:
+        # TODO: implement the output finalization for all generated queries for the format {{ format }} here. Usually,
+        # the single generated queries are embedded into a structure, e.g. some JSON or XML that can be imported into
+        # the SIEM.
+        return "\n".join(queries)

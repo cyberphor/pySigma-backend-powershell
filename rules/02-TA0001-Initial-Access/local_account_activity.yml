@@ -14,6 +14,6 @@ detection:
         - 3
         - 10
     filter:
-        TargetUserName: 'Administrator'       
+        TargetUserName: 'Administrator'
     condition: selection and not filter
 level: medium

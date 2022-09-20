@@ -11,13 +11,12 @@ def sigma2powershell(rulefile: str):
     rules = sigma.collection.SigmaCollection.load_ruleset([rulefile])
     pipeline = powershell_pipeline()
     backend = PowerShellBackend(pipeline)
-    queries = "\n".join(backend.convert(rules))
+    queries = backend.convert(rules)
     print(queries)
     return
 
 if __name__ == "__main__":
     if args.rule_file:
-        print("Import-Module .\Read-WinEvent.psm1")
         sigma2powershell(args.rule_file)
     else:
         parser.print_help()
