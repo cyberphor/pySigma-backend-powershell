@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--rule-file', type = str, help = 'path to Sigma rule file')
 args = parser.parse_args()
 
-EventParser = """
+event_parser = """
 filter Read-WinEvent {
     $WinEvent = [ordered]@{} 
     $XmlData = [xml]$_.ToXml()
@@ -42,7 +42,7 @@ def sigma2powershell(rulefile: str):
 
 if __name__ == "__main__":
     if args.rule_file:
-        print(EventParser)
+        print(event_parser)
         sigma2powershell(args.rule_file)
     else:
         parser.print_help()
