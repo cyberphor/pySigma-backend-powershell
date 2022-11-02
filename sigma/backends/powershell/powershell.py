@@ -144,4 +144,4 @@ class PowerShellBackend(TextQueryBackend):
             return prefix + query + suffix
 
     def finalize_output_default(self, queries: List[str]) -> str:
-        return "\n".join(queries)
+        return list(queries)
