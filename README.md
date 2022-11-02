@@ -17,3 +17,9 @@ It supports the following output formats:
 This backend is currently maintained by:
 
 * [Victor Fernandez III](https://github.com/cyberphor/)
+
+## Testing
+```python
+python -m pip install --user pytest
+python -m pytest
+```
