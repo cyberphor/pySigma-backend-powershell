@@ -1,10 +1,8 @@
-![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg)
-![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/cyberphor/GitHub Gist identifier containing coverage badge JSON expected by shields.io./raw/cyberphor-pySigma-backend-powershell.json)
-![Status](https://img.shields.io/badge/Status-pre--release-orange)
+![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg) ![Status](https://img.shields.io/badge/Status-pre--release-orange)
 
 # pySigma PowerShell Backend
 
-This is the PowerShell backend for pySigma. It provides the package `sigma.backends.powershell` with the `PowerShellBackend` class.
+This is the PowerShell backend for pySigma. It provides the package `sigma.backends.powershell` with the `PowerShellBackend` class. 
 Further, it contains the following processing pipelines in `sigma.pipelines.powershell`:
 
 * pipeline1: purpose
