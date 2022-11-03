@@ -13,12 +13,11 @@ def sigma2powershell(ruleset: List[str]):
     pipeline = powershell_pipeline()
     backend = PowerShellBackend(pipeline)
     queries = backend.convert(rules)
-    for query in queries:
-        print(query)
-    return
+    return queries
 
 if __name__ == "__main__":
     if args.rule_set:
-        sigma2powershell([args.rule_set])
+        for query in sigma2powershell([args.rule_set]):
+            print(query)
     else:
         parser.print_help()

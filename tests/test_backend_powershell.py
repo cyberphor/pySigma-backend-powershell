@@ -1,10 +1,12 @@
 import pytest
 from sigma.collection import SigmaCollection
+from sigma.pipelines.powershell import powershell_pipeline
 from sigma.backends.powershell import PowerShellBackend
 
 @pytest.fixture
 def powershell_backend():
-    return PowerShellBackend()
+    pipeline = powershell_pipeline()
+    return PowerShellBackend(pipeline)
 
 # TODO: implement tests for some basic queries and their expected results.
 def test_powershell_and_expression(powershell_backend : PowerShellBackend):
@@ -13,15 +15,15 @@ def test_powershell_and_expression(powershell_backend : PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
-                sel:
-                    fieldA: valueA
-                    fieldB: valueB
-                condition: sel
+                selection:
+                    EventID: 4688
+                    field: value
+                condition: selection
         """)
-    ) == ['<insert expected result here>']
+    ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { $_.field = "value" }']
 
 def test_powershell_or_expression(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -145,8 +147,6 @@ def test_powershell_field_name_with_whitespace(powershell_backend : PowerShellBa
 
 # TODO: implement tests for all backend features that don't belong to the base class defaults, e.g. features that were
 # implemented with custom code, deferred expressions etc.
-
-
 
 def test_powershell_format1_output(powershell_backend : PowerShellBackend):
     """Test for output format format1."""

@@ -26,7 +26,7 @@ class PowerShellBackend(TextQueryBackend):
     or_token : ClassVar[str] = "-or"
     and_token : ClassVar[str] = "-and"
     not_token : ClassVar[str] = "-not"
-    eq_token : ClassVar[str] = "="  # Token inserted between field and value (without separator)
+    eq_token : ClassVar[str] = " = "  # Token inserted between field and value (without separator)
     # String output
     ## Fields
     ### Quoting
@@ -120,6 +120,7 @@ class PowerShellBackend(TextQueryBackend):
 
     def get_event_id(self, rule) -> str:
         event_id = None
+        # TODO: make parsing of "selection" field more flexible (e.g, when "sel" is used)
         for detection_item in rule.detection.detections['selection'].detection_items:
             if detection_item.field == "EventID":
                 event_id = str(detection_item.value[0])
@@ -127,20 +128,17 @@ class PowerShellBackend(TextQueryBackend):
         
     def generate_query_prefix(self, logname, event_id) -> list[str]:
         if (logname != None) and (event_id != None):
-            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | \nRead-WinEvent | \nWhere-Object { '  % (logname, event_id) 
+            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | Read-WinEvent | Where-Object { '  % (logname, event_id) 
         else:
-            prefix = 'Get-WinEvent -LogName "%s" | \nRead-WinEvent | \nWhere-Object { '  % (logname)  
+            prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { '  % (logname)  
         return prefix
-
-    def generate_query_suffix(self, rule) -> str:
-        return ' }'
 
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         if rule.logsource.product == "windows":
             logname = self.get_logname(rule)
             event_id = self.get_event_id(rule)
             prefix = self.generate_query_prefix(logname, event_id)
-            suffix = self.generate_query_suffix(rule)
+            suffix = ' }'
             return prefix + query + suffix
 
     def finalize_output_default(self, queries: List[str]) -> str:
