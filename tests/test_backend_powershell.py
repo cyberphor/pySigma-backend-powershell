@@ -31,16 +31,18 @@ def test_powershell_or_expression(powershell_backend : PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
-                sel1:
+                selection1:
+                    EventID: 4688
+                selection2:
                     fieldA: valueA
-                sel2:
+                selection3:
                     fieldB: valueB
                 condition: 1 of sel*
         """)
-    ) == ['<insert expected result here>']
+    ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { ($_.fieldA = "valueA") -or ($_.fieldB = "valueB") }']
 
 def test_powershell_and_or_expression(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
