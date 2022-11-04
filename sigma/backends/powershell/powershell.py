@@ -120,10 +120,17 @@ class PowerShellBackend(TextQueryBackend):
 
     def get_event_id(self, rule) -> str:
         event_id = None
-        # TODO: make parsing of "selection" field more flexible (e.g, when "sel" is used)
+        detections = rule.detection.detections
+        for detection in detections:
+            if detection.startswith('sel'):
+                for detection_item in detections[detection].detection_items:
+                    if detection_item.field.endswith("EventId"):
+                        event_id = str(detection_item.value[0])
+        """
         for detection_item in rule.detection.detections['selection'].detection_items:
             if detection_item.field == "EventID":
-                event_id = str(detection_item.value[0])
+                event_id = str(detection_item.value)
+        """
         return event_id
         
     def generate_query_prefix(self, logname, event_id) -> list[str]:
@@ -132,7 +139,6 @@ class PowerShellBackend(TextQueryBackend):
         else:
             prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { '  % (logname)  
         return prefix
-
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         if rule.logsource.product == "windows":
             logname = self.get_logname(rule)
