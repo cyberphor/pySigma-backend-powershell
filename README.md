@@ -1,4 +1,5 @@
-![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg) ![Status](https://img.shields.io/badge/Status-pre--release-orange)
+![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg)  ![Coverage
+Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/cyberphor/7da37b293a0cee47e57de7aaa0668e52/raw/cyberphor-pySigma-Backend-PowerShell.json)  ![Status](https://img.shields.io/badge/Status-pre--release-orange)
 
 # pySigma PowerShell Backend
 
