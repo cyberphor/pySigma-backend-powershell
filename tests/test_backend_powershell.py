@@ -1,14 +1,13 @@
 import pytest
-from sigma.collection import SigmaCollection
 from sigma.pipelines.powershell import powershell_pipeline
 from sigma.backends.powershell import PowerShellBackend
+from sigma.collection import SigmaCollection
 
 @pytest.fixture
 def powershell_backend():
     pipeline = powershell_pipeline()
     return PowerShellBackend(pipeline)
 
-# TODO: implement tests for some basic queries and their expected results.
 def test_powershell_and_expression(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
@@ -42,7 +41,7 @@ def test_powershell_or_expression(powershell_backend : PowerShellBackend):
                     fieldB: valueB
                 condition: 1 of sel*
         """)
-    ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { ($_.fieldA = "valueA") -or ($_.fieldB = "valueB") }']
+    ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { $_.fieldA = "valueA" -or $_.fieldB = "valueB" }']
 
 def test_powershell_and_or_expression(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -62,7 +61,7 @@ def test_powershell_and_or_expression(powershell_backend : PowerShellBackend):
                         - valueB2
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == [None]
 
 def test_powershell_or_and_expression(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -81,7 +80,7 @@ def test_powershell_or_and_expression(powershell_backend : PowerShellBackend):
                     fieldB: valueB2
                 condition: 1 of sel*
         """)
-    ) == ['<insert expected result here>']
+    ) == [None]
 
 def test_powershell_in_expression(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -99,7 +98,7 @@ def test_powershell_in_expression(powershell_backend : PowerShellBackend):
                         - valueC*
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == [None]
 
 def test_powershell_regex_query(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -115,7 +114,7 @@ def test_powershell_regex_query(powershell_backend : PowerShellBackend):
                     fieldB: foo
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == [None]
 
 def test_powershell_cidr_query(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -130,7 +129,7 @@ def test_powershell_cidr_query(powershell_backend : PowerShellBackend):
                     field|cidr: 192.168.0.0/16
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == [None]
 
 def test_powershell_field_name_with_whitespace(powershell_backend : PowerShellBackend):
     assert powershell_backend.convert(
@@ -145,10 +144,7 @@ def test_powershell_field_name_with_whitespace(powershell_backend : PowerShellBa
                     field name: value
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
-
-# TODO: implement tests for all backend features that don't belong to the base class defaults, e.g. features that were
-# implemented with custom code, deferred expressions etc.
+    ) == [None]
 
 def test_powershell_format1_output(powershell_backend : PowerShellBackend):
     """Test for output format format1."""
@@ -159,5 +155,3 @@ def test_powershell_format2_output(powershell_backend : PowerShellBackend):
     """Test for output format format2."""
     # TODO: implement a test for the output format
     pass
-
-

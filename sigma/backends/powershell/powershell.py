@@ -21,22 +21,26 @@ class PowerShellBackend(TextQueryBackend):
     }
     precedence : ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
     group_expression : ClassVar[str] = "({expr})"   # Expression for precedence override grouping as format string with {expr} placeholder
+    
     # Generated query tokens
     token_separator : str = " "     # separator inserted between all boolean operators
     or_token : ClassVar[str] = "-or"
     and_token : ClassVar[str] = "-and"
     not_token : ClassVar[str] = "-not"
     eq_token : ClassVar[str] = " = "  # Token inserted between field and value (without separator)
+    
     # String output
     ## Fields
     ### Quoting
     field_quote : ClassVar[str] = "'"                               # Character used to quote field characters if field_quote_pattern matches (or not, depending on field_quote_pattern_negation). No field name quoting is done if not set.
     field_quote_pattern : ClassVar[Pattern] = re.compile("^\\w+$")   # Quote field names if this pattern (doesn't) matches, depending on field_quote_pattern_negation. Field name is always quoted if pattern is not set.
     field_quote_pattern_negation : ClassVar[bool] = False         # Negate field_quote_pattern result. Field name is quoted if pattern doesn't matches if set to True (default).
+    
     ### Escaping
     field_escape : ClassVar[str] = "\\"               # Character to escape particular parts defined in field_escape_pattern.
     field_escape_quote : ClassVar[bool] = True        # Escape quote string defined in field_quote
     field_escape_pattern : ClassVar[Pattern] = re.compile("\\s")   # All matches of this pattern are prepended with the string contained in field_escape.
+    
     ## Values
     str_quote       : ClassVar[str] = '"'     # string quoting character (added as escaping character)
     escape_char     : ClassVar[str] = "\\"    # Escaping character for special characrers inside string
@@ -48,15 +52,18 @@ class PowerShellBackend(TextQueryBackend):
         True: "true",
         False: "false",
     }
+    
     # String matching operators. if none is appropriate eq_token is used.
     startswith_expression : ClassVar[str] = "startswith"
     endswith_expression   : ClassVar[str] = "endswith"
     contains_expression   : ClassVar[str] = "contains"
     wildcard_match_expression : ClassVar[str] = "match"      # Special expression if wildcards can't be matched with the eq_token operator
+    
     # Regular expressions
     re_expression : ClassVar[str] = "{field}=~{regex}"  # Regular expression query as format string with placeholders {field} and {regex}
     re_escape_char : ClassVar[str] = "\\"               # Character used for escaping in regular expressions
     re_escape : ClassVar[Tuple[str]] = ()               # List of strings that are escaped
+    
     # cidr expressions
     cidr_wildcard : ClassVar[str] = "*"    # Character used as single wildcard
     cidr_expression : ClassVar[str] = "cidrmatch({field}, {value})"    # CIDR expression query as format string with placeholders {field} = {value}
@@ -64,6 +71,7 @@ class PowerShellBackend(TextQueryBackend):
 
     # Numeric comparison operators
     compare_op_expression : ClassVar[str] = "{field}{operator}{value}"  # Compare operation query as format string with placeholders {field}, {operator} and {value}
+    
     # Mapping between CompareOperators elements and strings used as replacement for {operator} in compare_op_expression
     compare_operators : ClassVar[Dict[SigmaCompareExpression.CompareOperators, str]] = {
         SigmaCompareExpression.CompareOperators.LT  : "<",
@@ -126,11 +134,6 @@ class PowerShellBackend(TextQueryBackend):
                 for detection_item in detections[detection].detection_items:
                     if detection_item.field.endswith("EventId"):
                         event_id = str(detection_item.value[0])
-        """
-        for detection_item in rule.detection.detections['selection'].detection_items:
-            if detection_item.field == "EventID":
-                event_id = str(detection_item.value)
-        """
         return event_id
         
     def generate_query_prefix(self, logname, event_id) -> list[str]:
@@ -139,6 +142,7 @@ class PowerShellBackend(TextQueryBackend):
         else:
             prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { '  % (logname)  
         return prefix
+
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         if rule.logsource.product == "windows":
             logname = self.get_logname(rule)
