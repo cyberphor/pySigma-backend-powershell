@@ -8,7 +8,7 @@ def powershell_backend():
     pipeline = powershell_pipeline()
     return PowerShellBackend(pipeline)
 
-def test_powershell_and_expression(powershell_backend : PowerShellBackend):
+def test_powershell_and_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -24,7 +24,7 @@ def test_powershell_and_expression(powershell_backend : PowerShellBackend):
         """)
     ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { $_.field = "value" }']
 
-def test_powershell_or_expression(powershell_backend : PowerShellBackend):
+def test_powershell_or_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -43,7 +43,7 @@ def test_powershell_or_expression(powershell_backend : PowerShellBackend):
         """)
     ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { $_.fieldA = "valueA" -or $_.fieldB = "valueB" }']
 
-def test_powershell_and_or_expression(powershell_backend : PowerShellBackend):
+def test_powershell_and_or_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -63,7 +63,7 @@ def test_powershell_and_or_expression(powershell_backend : PowerShellBackend):
         """)
     ) == [None]
 
-def test_powershell_or_and_expression(powershell_backend : PowerShellBackend):
+def test_powershell_or_and_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -82,7 +82,7 @@ def test_powershell_or_and_expression(powershell_backend : PowerShellBackend):
         """)
     ) == [None]
 
-def test_powershell_in_expression(powershell_backend : PowerShellBackend):
+def test_powershell_in_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -100,7 +100,7 @@ def test_powershell_in_expression(powershell_backend : PowerShellBackend):
         """)
     ) == [None]
 
-def test_powershell_regex_query(powershell_backend : PowerShellBackend):
+def test_powershell_regex_query(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -116,7 +116,7 @@ def test_powershell_regex_query(powershell_backend : PowerShellBackend):
         """)
     ) == [None]
 
-def test_powershell_cidr_query(powershell_backend : PowerShellBackend):
+def test_powershell_cidr_query(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -131,7 +131,7 @@ def test_powershell_cidr_query(powershell_backend : PowerShellBackend):
         """)
     ) == [None]
 
-def test_powershell_field_name_with_whitespace(powershell_backend : PowerShellBackend):
+def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""
             title: Test
@@ -146,12 +146,12 @@ def test_powershell_field_name_with_whitespace(powershell_backend : PowerShellBa
         """)
     ) == [None]
 
-def test_powershell_format1_output(powershell_backend : PowerShellBackend):
+def test_powershell_format1_output(powershell_backend: PowerShellBackend):
     """Test for output format format1."""
     # TODO: implement a test for the output format
     pass
 
-def test_powershell_format2_output(powershell_backend : PowerShellBackend):
+def test_powershell_format2_output(powershell_backend: PowerShellBackend):
     """Test for output format format2."""
     # TODO: implement a test for the output format
     pass
