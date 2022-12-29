@@ -1,6 +1,10 @@
 <<<<<<< Updated upstream:rules/TA0001-Initial-Access/local_account_activity.yml
 title: Local Account Activity
 id: d5ab8165-4bbb-4db3-9368-e4ecdc4166ff
+=======
+title: Suspicious Local Account Activity
+id: 1165f82d-a219-426e-b2e9-1093f6caeede
+>>>>>>> Stashed changes:rules/02-TA0001-Initial-Access/suspicious_local_account_activity.yml
 status: test
 description: Detects suspicious local account activity by looking for Windows Event ID 4624.
 author: Victor Fernandez III
