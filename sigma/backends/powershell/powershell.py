@@ -80,24 +80,6 @@ class PowerShellBackend(TextQueryBackend):
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
 
-<<<<<<< Updated upstream
-    # Null/None expressions
-    field_null_expression : ClassVar[str] = "{field} is null"          # Expression for field has null value as format string with {field} placeholder for field name
-
-    # Field value in list, e.g. "field in (value list)" or "field containsall (value list)"
-    convert_or_as_in : ClassVar[bool] = True                   # Convert OR as in-expression
-    convert_and_as_in : ClassVar[bool] = True                    # Convert AND as in-expression
-    in_expressions_allow_wildcards : ClassVar[bool] = True       # Values in list can contain wildcards. If set to False (default) only plain values are converted into in-expressions.
-    field_in_list_expression : ClassVar[str] = "{field} {op} ({list})"  # Expression for field in list of values as format string with placeholders {field}, {op} and {list}
-    or_in_operator : ClassVar[str] = "-in"               # Operator used to convert OR into in-expressions. Must be set if convert_or_as_in is set
-    and_in_operator : ClassVar[str] = "contains-all"    # Operator used to convert AND into in-expressions. Must be set if convert_and_as_in is set
-    list_separator : ClassVar[str] = ", "               # List element separator
-
-    # Value not bound to a field
-    unbound_value_str_expression : ClassVar[str] = '"{value}"'   # Expression for string value not bound to a field as format string with placeholder {value}
-    unbound_value_num_expression : ClassVar[str] = '{value}'   # Expression for number value not bound to a field as format string with placeholder {value}
-    unbound_value_re_expression : ClassVar[str] = '_=~{value}'    # Expression for regular expression not bound to a field as format string with placeholder {value}
-=======
     def generate_query_prefix(self, processed_rule) -> list[str]:
         logname = processed_rule.split("LogName = ")[1].split(" ")[0]
         if "Id" in processed_rule:
@@ -107,7 +89,6 @@ class PowerShellBackend(TextQueryBackend):
             event_id = False
             prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { ' % (logname)
         return logname, event_id, prefix
->>>>>>> Stashed changes
 
     # Query finalization: appending and concatenating deferred query part
     deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts

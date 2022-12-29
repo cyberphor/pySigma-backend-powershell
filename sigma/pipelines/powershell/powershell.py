@@ -13,15 +13,6 @@ windows_logsource_mapping = {
 
 def powershell_pipeline() -> ProcessingPipeline: 
     return ProcessingPipeline(
-<<<<<<< Updated upstream
-        name="PowerShell pipeline",
-        priority=20,
-        items=[
-            ProcessingItem(     
-                identifier=f"powershell_windows_{service}",
-                transformation=AddConditionTransformation({"source": source}),
-                rule_conditions=[logsource_windows(service)],
-=======
         name = "PowerShell pipeline",
         priority = 20,
         items = [
@@ -31,7 +22,6 @@ def powershell_pipeline() -> ProcessingPipeline:
                 ],
                 rule_condition_negation = True,
                 transformation = RuleFailureTransformation("Invalid logsource")
->>>>>>> Stashed changes
             )
         ] + [
             ProcessingItem(
@@ -49,20 +39,6 @@ def powershell_pipeline() -> ProcessingPipeline:
             for service, source in windows_logsource_mapping.items()
         ] + [
             ProcessingItem(
-<<<<<<< Updated upstream
-                identifier="powershell_drop_source_and_EventID_fields",
-                transformation=DropDetectionItemTransformation(),
-                field_name_conditions=[
-                    IncludeFieldCondition(
-                        fields=["source","EventID"]
-                    )
-                ]
-            )
-        ] + [
-            ProcessingItem(
-                identifier="powershell_field_name_prefix",
-                transformation=AddFieldnamePrefixTransformation("$_.")
-=======
                 identifier = "powershell_field_mapping",
                 transformation = FieldMappingTransformation(
                     { "EventID": "Id" },
@@ -77,7 +53,6 @@ def powershell_pipeline() -> ProcessingPipeline:
                     )
                 ],
                 transformation = AddFieldnamePrefixTransformation("$_.")  
->>>>>>> Stashed changes
             )
         ],
     )
