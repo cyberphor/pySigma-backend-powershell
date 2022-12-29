@@ -1,4 +1,5 @@
 title: Privileged User Command Line Interface Activity
+id: aff6e0a5-bfb7-4ae0-a648-83b33c85d330
 status: experimental
 description: Detects when a privileged user invokes PowerShell.
 author: Victor Fernandez III

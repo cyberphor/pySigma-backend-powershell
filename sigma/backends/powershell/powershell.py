@@ -80,6 +80,7 @@ class PowerShellBackend(TextQueryBackend):
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
 
+<<<<<<< Updated upstream
     # Null/None expressions
     field_null_expression : ClassVar[str] = "{field} is null"          # Expression for field has null value as format string with {field} placeholder for field name
 
@@ -96,6 +97,17 @@ class PowerShellBackend(TextQueryBackend):
     unbound_value_str_expression : ClassVar[str] = '"{value}"'   # Expression for string value not bound to a field as format string with placeholder {value}
     unbound_value_num_expression : ClassVar[str] = '{value}'   # Expression for number value not bound to a field as format string with placeholder {value}
     unbound_value_re_expression : ClassVar[str] = '_=~{value}'    # Expression for regular expression not bound to a field as format string with placeholder {value}
+=======
+    def generate_query_prefix(self, processed_rule) -> list[str]:
+        logname = processed_rule.split("LogName = ")[1].split(" ")[0]
+        if "Id" in processed_rule:
+            event_id = processed_rule.split("Id = ")[1].split(" ")[0]
+            prefix = 'Get-WinEvent -FilterHashTable @{LogName=%s;Id=%s} | Read-WinEvent | Where-Object { ' % (logname, event_id)
+        else:
+            event_id = False
+            prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { ' % (logname)
+        return logname, event_id, prefix
+>>>>>>> Stashed changes
 
     # Query finalization: appending and concatenating deferred query part
     deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts
