@@ -1,12 +1,12 @@
-from sigma.conversion.state import ConversionState
-from sigma.rule import SigmaRule
-from sigma.conversion.base import TextQueryBackend
 from sigma.conditions import ConditionFieldEqualsValueExpression, ConditionItem, ConditionAND, ConditionOR, ConditionNOT
-from sigma.types import SigmaCompareExpression
-import sigma
-import re
-from typing import ClassVar, Dict, Tuple, Pattern, List, Union
+from sigma.conversion.base import TextQueryBackend
 from sigma.conversion.deferred import DeferredQueryExpression
+from sigma.conversion.state import ConversionState
+from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
+from sigma.rule import SigmaRule
+from sigma.types import SigmaCompareExpression
+from typing import ClassVar, Dict, Tuple, Pattern, List, Union
+import re
 
 class PowerShellBackend(TextQueryBackend):
     """Powershell backend."""
@@ -104,8 +104,10 @@ class PowerShellBackend(TextQueryBackend):
             raise NotImplementedError("Operator 'not' not supported by the backend")
        
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        return "Get-WinEvent -FilterHashTable @{LogName=;Id=} | Read-WinEvent | Where-Object {  }"
-        # "Get-WinEvent -LogName | Read-WinEvent | Where-Object { }"
+        service = windows_logsource_mapping[rule.logsource.service]
+        query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
+        return query_prefix + f"Where-Object {{ {query} }}"
 
+        
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

@@ -8,7 +8,7 @@ logsource:
     service: security
 detection:
     selection:
-        EventID: 4624
+        eventID: 4624
         LogonType:
         - 2
         - 3
