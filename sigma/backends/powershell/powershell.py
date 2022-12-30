@@ -80,16 +80,6 @@ class PowerShellBackend(TextQueryBackend):
         SigmaCompareExpression.CompareOperators.GTE : ">=",
     }
 
-    def generate_query_prefix(self, processed_rule) -> list[str]:
-        logname = processed_rule.split("LogName = ")[1].split(" ")[0]
-        if "Id" in processed_rule:
-            event_id = processed_rule.split("Id = ")[1].split(" ")[0]
-            prefix = 'Get-WinEvent -FilterHashTable @{LogName=%s;Id=%s} | Read-WinEvent | Where-Object { ' % (logname, event_id)
-        else:
-            event_id = False
-            prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { ' % (logname)
-        return logname, event_id, prefix
-
     # Query finalization: appending and concatenating deferred query part
     deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts
     deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
@@ -112,37 +102,10 @@ class PowerShellBackend(TextQueryBackend):
                     return '{field} -ne "{value}"'.format(field=arg.field, value=arg.value)
         except TypeError:       # pragma: no cover
             raise NotImplementedError("Operator 'not' not supported by the backend")
-
-    def get_logname(self, rule) -> str:
-        if rule.logsource.service == None:
-            return None
-        else:
-            return rule.logsource.service
-
-    def get_event_id(self, rule) -> str:
-        event_id = None
-        detections = rule.detection.detections
-        for detection in detections:
-            if detection.startswith('sel'):
-                for detection_item in detections[detection].detection_items:
-                    if detection_item.field.endswith("EventId"):
-                        event_id = str(detection_item.value[0])
-        return event_id
-        
-    def generate_query_prefix(self, logname, event_id) -> list[str]:
-        if (logname != None) and (event_id != None):
-            prefix = 'Get-WinEvent -FilterHashTable @{LogName="%s";Id=%s} | Read-WinEvent | Where-Object { '  % (logname, event_id) 
-        else:
-            prefix = 'Get-WinEvent -LogName "%s" | Read-WinEvent | Where-Object { '  % (logname)  
-        return prefix
-
+       
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        if rule.logsource.product == "windows":
-            logname = self.get_logname(rule)
-            event_id = self.get_event_id(rule)
-            prefix = self.generate_query_prefix(logname, event_id)
-            suffix = ' }'
-            return prefix + query + suffix
+        return "Get-WinEvent -FilterHashTable @{LogName=;Id=} | Read-WinEvent | Where-Object {  }"
+        # "Get-WinEvent -LogName | Read-WinEvent | Where-Object { }"
 
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)
