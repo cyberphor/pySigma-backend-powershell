@@ -4,8 +4,8 @@ status: test
 description: Detects suspicious local account activity by looking for Windows Event ID 4624.
 author: Victor Fernandez III
 logsource:
-    product: foo
-    service: security
+    product: windows
+    service: dns
 detection:
     selection:
         EventID: 4624

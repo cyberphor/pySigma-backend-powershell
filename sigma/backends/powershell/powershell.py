@@ -104,10 +104,10 @@ class PowerShellBackend(TextQueryBackend):
             raise NotImplementedError("Operator 'not' not supported by the backend")
        
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        service = windows_logsource_mapping[rule.logsource.service]
-        query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
-        return query_prefix + f"Where-Object {{ {query} }}"
+        if rule.logsource.service in windows_logsource_mapping:
+            service = windows_logsource_mapping[rule.logsource.service]
+            query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
+            return query_prefix + f"Where-Object {{ {query} }}"
 
-        
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)
