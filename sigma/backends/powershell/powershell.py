@@ -1,3 +1,4 @@
+import re
 from sigma.conditions import ConditionFieldEqualsValueExpression, ConditionItem, ConditionAND, ConditionOR, ConditionNOT
 from sigma.conversion.base import TextQueryBackend
 from sigma.conversion.deferred import DeferredQueryExpression
@@ -6,7 +7,6 @@ from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.rule import SigmaRule
 from sigma.types import SigmaCompareExpression
 from typing import ClassVar, Dict, Tuple, Pattern, List, Union
-import re
 
 class PowerShellBackend(TextQueryBackend):
     """Powershell backend."""
@@ -104,10 +104,12 @@ class PowerShellBackend(TextQueryBackend):
             raise NotImplementedError("Operator 'not' not supported by the backend")
        
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        if rule.logsource.service in windows_logsource_mapping:
+        try:
             service = windows_logsource_mapping[rule.logsource.service]
             query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
             return query_prefix + f"Where-Object {{ {query} }}"
+        except:
+            return f"Missing or unsupported logsource for rule titled '{rule.title}'"
 
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

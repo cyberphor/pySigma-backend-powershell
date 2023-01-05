@@ -1,23 +1,23 @@
 # pySigma PowerShell Backend
+Uses pySigma to convert Sigma rules into PowerShell queries.
 
-This is the PowerShell backend for pySigma. It provides the package `sigma.backends.powershell` with the `PowerShellBackend` class. 
-Further, it contains the following processing pipelines in `sigma.pipelines.powershell`:
+## Overview
+pySigma-backend-powershell provides two Python packages:
+* `sigma.pipelines.powershell`: normalizes Sigma rules for PowerShell.
+* `sigma.backends.powershell`: declares the `PowerShellBackend` class and multiple output methods.
 
-* pipeline1: purpose
-* pipeline2: purpose
-
-It supports the following output formats:
-
-* default: plain PowerShell queries
-* format_1: purpose
-* format_2: purpose
-
-This backend is currently maintained by:
-
-* [Victor Fernandez III](https://github.com/cyberphor/)
+It currently supports the following output formats:
+- [x] default: plain PowerShell queries
+- [ ] script: a PowerShell script
+- [ ] xml: XML documents
+- [ ] xpath: XML strings
+- [ ] subscription: Windows event subscriptions 
 
 ## Testing
 ```python
 python -m pip install --user pytest
 python -m pytest
 ```
+
+## References
+* [Understanding XML and XPath by the Microsoft Scripting Guy, Ed Wilson](https://devblogs.microsoft.com/scripting/understanding-xml-and-xpath/)

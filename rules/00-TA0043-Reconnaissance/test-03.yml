@@ -1,0 +1,15 @@
+title: Test 03
+id: 1165f82d-a219-426e-b2e9-1093f6caeed3
+status: test
+description: Detects nothing this rule was developed to test pySigma PowerShell pipeline and backend.
+author: Victor Fernandez III
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4624
+    filter:
+        TargetUserName: 'Administrator'
+    condition: selection and not filter
+level: medium
