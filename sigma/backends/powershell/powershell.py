@@ -107,9 +107,10 @@ class PowerShellBackend(TextQueryBackend):
         try:
             service = windows_logsource_mapping[rule.logsource.service]
             query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
-            return query_prefix + f"Where-Object {{ {query} }}"
+            #print(rule.to_dict().__getitem__("selection"))
+            return ""#query_prefix + f"Where-Object {{ {query} }}"
         except:
-            return f"Missing or unsupported logsource for rule titled '{rule.title}'"
+            return f"Missing or invalid logsource: '{rule.logsource.service}'"
 
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

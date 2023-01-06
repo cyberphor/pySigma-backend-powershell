@@ -14,6 +14,7 @@ def powershell_pipeline() -> ProcessingPipeline:
         ]
     )
 
+    """
     drop_id_field = ProcessingItem(
         transformation = DropDetectionItemTransformation(),
         field_name_conditions = [
@@ -23,15 +24,21 @@ def powershell_pipeline() -> ProcessingPipeline:
             )
         ]
     )
+    """
 
     add_prefix_to_field_names = ProcessingItem(
-        transformation = AddFieldnamePrefixTransformation("$_.")
+        transformation = AddFieldnamePrefixTransformation("$_."),
+        field_name_conditions = [
+            ExcludeFieldCondition(
+                fields = ["([(e|E)][(v|V)][(e|E)][(n|N)][(t|T)][][(i|I)][(d|D)])|([(e|E)][(v|V)][(e|E)][(n|N)][(t|T)][(-|_)][(i|I)][(d|D)])"],
+                type = "re"
+            )
+        ]
     )
 
     pipeline = ProcessingPipeline()
     pipeline.name = "PowerShell Pipeline"
     pipeline.priority = 20
     pipeline.items.append(drop_logsource_field)
-    pipeline.items.append(drop_id_field)
     pipeline.items.append(add_prefix_to_field_names)
     return pipeline
