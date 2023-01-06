@@ -3,7 +3,7 @@ from sigma.conditions import ConditionFieldEqualsValueExpression, ConditionItem,
 from sigma.conversion.base import TextQueryBackend
 from sigma.conversion.deferred import DeferredQueryExpression
 from sigma.conversion.state import ConversionState
-from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
+from sigma.pipelines.common import windows_logsource_mapping
 from sigma.rule import SigmaRule
 from sigma.types import SigmaCompareExpression
 from typing import ClassVar, Dict, Tuple, Pattern, List, Union
@@ -106,11 +106,14 @@ class PowerShellBackend(TextQueryBackend):
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         try:
             service = windows_logsource_mapping[rule.logsource.service]
-            query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
-            #print(rule.to_dict().__getitem__("selection"))
-            return ""#query_prefix + f"Where-Object {{ {query} }}"
-        except:
+        except KeyError:
+            # TODO: replace this logic with validator code provided by pySigma
             return f"Missing or invalid logsource: '{rule.logsource.service}'"
-
+        else:
+            # need event id to be part of the rule, but not part of the query
+            # just like title, id, author, etc. 
+            query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
+            return query_prefix + f"Where-Object {{ {query} }}"
+            
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

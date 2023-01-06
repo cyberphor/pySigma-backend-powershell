@@ -1,4 +1,3 @@
-from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.transformations import AddConditionTransformation, AddFieldnamePrefixTransformation, DropDetectionItemTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, SetStateTransformation
 from sigma.processing.conditions import IncludeFieldCondition, ExcludeFieldCondition, MatchStringCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
