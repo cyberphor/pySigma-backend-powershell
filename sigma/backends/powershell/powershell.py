@@ -112,8 +112,10 @@ class PowerShellBackend(TextQueryBackend):
         else:
             # need event id to be part of the rule, but not part of the query
             # just like title, id, author, etc. 
-            query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
-            return query_prefix + f"Where-Object {{ {query} }}"
-            
+            # query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
+            # return query_prefix + f"Where-Object {{ {query} }}"
+            print(rule)
+            return ""
+ 
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

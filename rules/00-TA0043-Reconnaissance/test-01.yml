@@ -10,6 +10,8 @@ detection:
     selection:
         EventID: 4624
     filter:
-        TargetUserName: 'Administrator'
+        TargetUserName:
+        - 'Administrator'
+        - 'Victor'
     condition: selection and not filter
 level: medium
