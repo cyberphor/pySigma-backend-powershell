@@ -106,16 +106,16 @@ class PowerShellBackend(TextQueryBackend):
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
         try:
             service = windows_logsource_mapping[rule.logsource.service]
+            id = query.split()[2]
+            query = re.split("'Id' = \d+ -and ", query)[1]
         except KeyError:
             # TODO: replace this logic with validator code provided by pySigma
             return f"Missing or invalid logsource: '{rule.logsource.service}'"
+        except IndexError:
+            # TODO: replace this logic with validator code provided by pySigma
+            return "Missing field: 'EventID'"
         else:
-            # need event id to be part of the rule, but not part of the query
-            # just like title, id, author, etc. 
-            # query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id=}} | Read-WinEvent | "
-            # return query_prefix + f"Where-Object {{ {query} }}"
-            print(rule)
-            return ""
- 
+            return f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id={id}}} | Read-WinEvent | Where-Object {{ {query} }}"
+
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

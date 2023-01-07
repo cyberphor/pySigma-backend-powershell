@@ -1,36 +1,37 @@
-from sigma.processing.transformations import AddConditionTransformation, AddFieldnamePrefixTransformation, DropDetectionItemTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, SetStateTransformation
-from sigma.processing.conditions import IncludeFieldCondition, ExcludeFieldCondition, MatchStringCondition
+from sigma.processing.conditions import IncludeFieldCondition, ExcludeFieldCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
+from sigma.processing.transformations import AddFieldnamePrefixTransformation, DropDetectionItemTransformation, FieldMappingTransformation
 
 def powershell_pipeline() -> ProcessingPipeline:
     drop_logsource_field = ProcessingItem(
         transformation = DropDetectionItemTransformation(),
         field_name_conditions = [
-            IncludeFieldCondition(
-                fields = ["LogName"], 
-                type = "plain"
-            )
+            IncludeFieldCondition(["LogName"])
         ]
     )
 
-    drop_id_field = ProcessingItem(
-        transformation = DropDetectionItemTransformation(),
-        field_name_conditions = [
-            IncludeFieldCondition(
-                fields = ["([(e|E)][(v|V)][(e|E)][(n|N)][(t|T)][][(i|I)][(d|D)])|([(e|E)][(v|V)][(e|E)][(n|N)][(t|T)][(-|_)][(i|I)][(d|D)])"],
-                type = "re"
-            )
-        ]
+    rename_eventid_field = ProcessingItem(
+        transformation = FieldMappingTransformation(
+            mapping = {
+                "eventid": "Id",
+                "eventId": "Id",
+                "eventID": "Id",
+                "Eventid": "Id",
+                "EventId": "Id",
+                "EventID": "Id"
+            }
+        )
     )
 
-    add_prefix_to_field_names = ProcessingItem(
+    add_prefix = ProcessingItem(
         transformation = AddFieldnamePrefixTransformation("$_."),
+        field_name_conditions = [
+            ExcludeFieldCondition(["Id"])
+        ]
     )
 
     pipeline = ProcessingPipeline()
-    pipeline.name = "PowerShell Pipeline"
-    pipeline.priority = 20
     pipeline.items.append(drop_logsource_field)
-    pipeline.items.append(drop_id_field)
-    pipeline.items.append(add_prefix_to_field_names)
+    pipeline.items.append(rename_eventid_field)
+    pipeline.items.append(add_prefix)
     return pipeline
