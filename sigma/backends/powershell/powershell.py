@@ -10,14 +10,13 @@ from typing import ClassVar, Dict, Tuple, Pattern, List, Union
 
 class PowerShellBackend(TextQueryBackend):
     """Powershell backend."""
-    # TODO: change the token definitions according to the syntax. Delete these not supported by your backend.
-    # See the pySigma documentation for further infromation:
-    # https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html
-    # Operator precedence: tuple of Condition{AND,OR,NOT} in order of precedence.
-    # The backend generates grouping if required
     name : ClassVar[str] = "powershell backend"
-    formats : Dict[str, str] = {
-        "default": "Plain powershell queries"
+    formats : Dict[str, str] = { 
+        "default": "plain PowerShell queries",
+        "script": "a PowerShell script",
+        "xml": "XML documents",
+        "xpath": "XML strings",
+        "subscription": "Windows event subscriptions" 
     }
     precedence : ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
     group_expression : ClassVar[str] = "({expr})"   # Expression for precedence override grouping as format string with {expr} placeholder
@@ -54,9 +53,9 @@ class PowerShellBackend(TextQueryBackend):
     }
     
     # String matching operators. if none is appropriate eq_token is used.
-    startswith_expression : ClassVar[str] = "startswith"
+    startswith_expression : ClassVar[str] = "{field} -like {value}*"
     endswith_expression   : ClassVar[str] = "endswith"
-    contains_expression   : ClassVar[str] = "contains"
+    contains_expression   : ClassVar[str] = "{field} -contains {value}"
     wildcard_match_expression : ClassVar[str] = "match"      # Special expression if wildcards can't be matched with the eq_token operator
     
     # Regular expressions
@@ -85,9 +84,6 @@ class PowerShellBackend(TextQueryBackend):
     deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
     deferred_only_query : ClassVar[str] = "*"            # String used as query if final query only contains deferred expression
 
-    # TODO: implement custom methods for query elements not covered by the default backend base.
-    # Documentation: https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html
-
     def convert_condition_not(self, cond : ConditionNOT, state : ConversionState) -> Union[str, DeferredQueryExpression]:
         """Conversion of NOT conditions."""
         arg = cond.args[0]
@@ -104,18 +100,7 @@ class PowerShellBackend(TextQueryBackend):
             raise NotImplementedError("Operator 'not' not supported by the backend")
        
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        try:
-            service = windows_logsource_mapping[rule.logsource.service]
-            id = query.split()[2]
-            query = re.split("'Id' = \d+ -and ", query)[1]
-        except KeyError:
-            # TODO: replace this logic with validator code provided by pySigma
-            return f"Missing or invalid logsource: '{rule.logsource.service}'"
-        except IndexError:
-            # TODO: replace this logic with validator code provided by pySigma
-            return "Missing field: 'EventID'"
-        else:
-            return f"Get-WinEvent -FilterHashTable @{{LogName='{service}'; Id={id}}} | Read-WinEvent | Where-Object {{ {query} }}"
-
+        return query
+        
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

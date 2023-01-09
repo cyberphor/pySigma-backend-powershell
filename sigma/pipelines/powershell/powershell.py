@@ -1,37 +1,22 @@
-from sigma.processing.conditions import IncludeFieldCondition, ExcludeFieldCondition
+from sigma.processing.conditions import LogsourceCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
-from sigma.processing.transformations import AddFieldnamePrefixTransformation, DropDetectionItemTransformation, FieldMappingTransformation
+from sigma.processing.transformations import AddFieldnamePrefixTransformation, RuleFailureTransformation
 
 def powershell_pipeline() -> ProcessingPipeline:
-    drop_logsource_field = ProcessingItem(
-        transformation = DropDetectionItemTransformation(),
-        field_name_conditions = [
-            IncludeFieldCondition(["LogName"])
-        ]
-    )
-
-    rename_eventid_field = ProcessingItem(
-        transformation = FieldMappingTransformation(
-            mapping = {
-                "eventid": "Id",
-                "eventId": "Id",
-                "eventID": "Id",
-                "Eventid": "Id",
-                "EventId": "Id",
-                "EventID": "Id"
-            }
-        )
-    )
-
     add_prefix = ProcessingItem(
         transformation = AddFieldnamePrefixTransformation("$_."),
-        field_name_conditions = [
-            ExcludeFieldCondition(["Id"])
-        ]
+    )
+    
+    handle_rule_failures = ProcessingItem(
+        rule_condition_linking = any,
+        rule_condition_negation = True,
+        rule_conditions = [
+            LogsourceCondition(product = "windows"),
+        ],
+        transformation = RuleFailureTransformation("Missing or invalid logsource"),
     )
 
     pipeline = ProcessingPipeline()
-    pipeline.items.append(drop_logsource_field)
-    pipeline.items.append(rename_eventid_field)
     pipeline.items.append(add_prefix)
+    pipeline.items.append(handle_rule_failures)
     return pipeline
