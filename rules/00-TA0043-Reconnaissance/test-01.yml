@@ -4,11 +4,12 @@ status: test
 description: Detects nothing this rule was developed to test pySigma PowerShell pipeline and backend.
 author: Victor Fernandez III
 logsource:
-    product: foo
+    product: windows
     service: security
 detection:
     selection:
         Foo: "bar"
+        eventid: 1111
     filter:
         TargetUserName:
         - 'Administrator'
