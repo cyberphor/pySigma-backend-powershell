@@ -1,22 +1,25 @@
+from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.conditions import LogsourceCondition
-from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
+from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
 from sigma.processing.transformations import AddFieldnamePrefixTransformation, RuleFailureTransformation
 
 def powershell_pipeline() -> ProcessingPipeline:
-    add_prefix = ProcessingItem(
-        transformation = AddFieldnamePrefixTransformation("$_."),
+    return ProcessingPipeline(
+        name = "PowerShell pipeline",
+        items = [
+            ProcessingItem(
+                transformation = AddFieldnamePrefixTransformation("$_."),
+            )
+        ] + [
+            ProcessingItem(
+                rule_condition_linking = any,
+                rule_condition_negation = True,
+                rule_conditions = [
+                    LogsourceCondition(product = "windows"),
+                    logsource_windows(service)
+                ],
+                transformation = RuleFailureTransformation("Rule not supported."),
+            )
+            for service, source in windows_logsource_mapping.items()
+        ]
     )
-    
-    handle_rule_failures = ProcessingItem(
-        rule_condition_linking = any,
-        rule_condition_negation = True,
-        rule_conditions = [
-            LogsourceCondition(product = "windows"),
-        ],
-        transformation = RuleFailureTransformation("Missing or invalid logsource"),
-    )
-
-    pipeline = ProcessingPipeline()
-    pipeline.items.append(add_prefix)
-    pipeline.items.append(handle_rule_failures)
-    return pipeline

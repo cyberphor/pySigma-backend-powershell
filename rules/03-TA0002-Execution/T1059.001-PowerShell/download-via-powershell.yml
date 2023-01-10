@@ -8,7 +8,7 @@ logsource:
     service: powershell
 detection:
     selection:
-        EventId: 4104
+        EventID: 4104
         ScriptBlockText|startswith:
         - "IEX"
         - "Invoke-Expression"

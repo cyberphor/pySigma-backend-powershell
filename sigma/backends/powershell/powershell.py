@@ -1,5 +1,5 @@
 import re
-from sigma.conditions import ConditionFieldEqualsValueExpression, ConditionItem, ConditionAND, ConditionOR, ConditionNOT
+from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT
 from sigma.conversion.base import TextQueryBackend
 from sigma.conversion.deferred import DeferredQueryExpression
 from sigma.conversion.state import ConversionState
@@ -9,8 +9,7 @@ from sigma.types import SigmaCompareExpression
 from typing import ClassVar, Dict, Tuple, Pattern, List, Union
 
 class PowerShellBackend(TextQueryBackend):
-    """Powershell backend."""
-    name : ClassVar[str] = "powershell backend"
+    name : ClassVar[str] = "PowerShell backend"
     formats : Dict[str, str] = { 
         "default": "plain PowerShell queries",
         "script": "a PowerShell script",
@@ -22,11 +21,11 @@ class PowerShellBackend(TextQueryBackend):
     group_expression : ClassVar[str] = "({expr})"   # Expression for precedence override grouping as format string with {expr} placeholder
     
     # Generated query tokens
-    token_separator : str = " "     # separator inserted between all boolean operators
+    token_separator : str = " "
     or_token : ClassVar[str] = "-or"
     and_token : ClassVar[str] = "-and"
     not_token : ClassVar[str] = "-not"
-    eq_token : ClassVar[str] = " = "  # Token inserted between field and value (without separator)
+    eq_token : ClassVar[str] = " = "
     
     # String output
     ## Fields
@@ -47,10 +46,7 @@ class PowerShellBackend(TextQueryBackend):
     wildcard_single : ClassVar[str] = "*"     # Character used as single-character wildcard
     add_escaped     : ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
     filter_chars    : ClassVar[str] = ""      # Characters filtered
-    bool_values     : ClassVar[Dict[bool, str]] = {   # Values to which boolean values are mapped.
-        True: "true",
-        False: "false",
-    }
+    bool_values     : ClassVar[Dict[bool, str]] = {True: "true", False:"false"}
     
     # String matching operators. if none is appropriate eq_token is used.
     startswith_expression : ClassVar[str] = "{field} -like {value}*"
@@ -59,7 +55,7 @@ class PowerShellBackend(TextQueryBackend):
     wildcard_match_expression : ClassVar[str] = "match"      # Special expression if wildcards can't be matched with the eq_token operator
     
     # Regular expressions
-    re_expression : ClassVar[str] = "{field}=~{regex}"  # Regular expression query as format string with placeholders {field} and {regex}
+    re_expression : ClassVar[str] = "{field} =~ {regex}"  # Regular expression query as format string with placeholders {field} and {regex}
     re_escape_char : ClassVar[str] = "\\"               # Character used for escaping in regular expressions
     re_escape : ClassVar[Tuple[str]] = ()               # List of strings that are escaped
     
@@ -69,7 +65,7 @@ class PowerShellBackend(TextQueryBackend):
     cidr_in_list_expression : ClassVar[str] = "{field} in ({value})"    # CIDR expression query as format string with placeholders {field} = in({list})
 
     # Numeric comparison operators
-    compare_op_expression : ClassVar[str] = "{field}{operator}{value}"  # Compare operation query as format string with placeholders {field}, {operator} and {value}
+    compare_op_expression : ClassVar[str] = "{field} {operator} {value}"  # Compare operation query as format string with placeholders {field}, {operator} and {value}
     
     # Mapping between CompareOperators elements and strings used as replacement for {operator} in compare_op_expression
     compare_operators : ClassVar[Dict[SigmaCompareExpression.CompareOperators, str]] = {
@@ -80,27 +76,30 @@ class PowerShellBackend(TextQueryBackend):
     }
 
     # Query finalization: appending and concatenating deferred query part
-    deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts
-    deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
-    deferred_only_query : ClassVar[str] = "*"            # String used as query if final query only contains deferred expression
+    deferred_start : ClassVar[str] = "\n| "     # String used as separator between main query and deferred parts
+    deferred_separator : ClassVar[str] = "\n| " # String used to join multiple deferred query parts
+    deferred_only_query : ClassVar[str] = "*"   # String used as query if final query only contains deferred expression
 
     def convert_condition_not(self, cond : ConditionNOT, state : ConversionState) -> Union[str, DeferredQueryExpression]:
         """Conversion of NOT conditions."""
         arg = cond.args[0]
-        try:
-            if arg.__class__ in self.precedence:        # group if AND or OR condition is negated
-                return self.not_token + self.token_separator + self.convert_condition_group(arg, state)
+        if arg.__class__ in self.precedence:
+            return self.not_token + self.token_separator + self.convert_condition_group(arg, state)
+        else:
+            expr = self.convert_condition(arg, state)
+            if isinstance(expr, DeferredQueryExpression):
+                return expr.negate()
             else:
-                expr = self.convert_condition(arg, state)
-                if isinstance(expr, DeferredQueryExpression):      # negate deferred expression and pass it to parent
-                    return expr.negate()
-                else:                                             # convert negated expression to string
-                    return '{field} -ne "{value}"'.format(field=arg.field, value=arg.value)
-        except TypeError:       # pragma: no cover
-            raise NotImplementedError("Operator 'not' not supported by the backend")
-       
+                return f'{arg.field} -ne "{arg.value}"'
+
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        return query
+        detections = rule.detection.detections
+        for k in detections.keys():
+            if k == "selection":
+                for i in detections[k].detection_items:
+                    if i.field == "$_.EventID":
+                        id = i.value[0]
+        return f"Get-WinEvent @{{Logname={rule.logsource.service};Id={id}}} | Read-WinEvent | Where-Object {{{' '.join(query.split()[4:])}}}" 
         
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

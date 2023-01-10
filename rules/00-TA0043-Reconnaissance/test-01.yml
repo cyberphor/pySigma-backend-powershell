@@ -4,7 +4,7 @@ status: test
 description: Detects nothing this rule was developed to test pySigma PowerShell pipeline and backend.
 author: Victor Fernandez III
 logsource:
-    product: windows
+    product: foo
     service: security
 detection:
     selection:
