@@ -92,24 +92,12 @@ class PowerShellBackend(TextQueryBackend):
             else:
                 return f'{arg.field} -ne "{arg.value}"'
 
-    def get_event_id(self, rule):
-        for search_identifier, search in rule.detection.detections.items():
-            if re.search("sel[ection]*", search_identifier, re.IGNORECASE): 
-                for search_property in search.detection_items:
-                    if re.search("\$_\.EventID", search_property.field, re.IGNORECASE):
-                        return search_property.value[0]
-
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        logname = windows_logsource_mapping[rule.logsource.service]
-        event_id = self.get_event_id(rule)
-        if event_id:
-            query_prefix = f"Get-WinEvent -FilterHashTable @{{LogName = {logname}; Id = {event_id}}} | Read-WinEvent | "
-            query = re.split(pattern = "\$_\.EventID = \d+ -and ", string = query, flags = re.IGNORECASE)
-            query_suffix = f"Where-Object {{{' '.join(query)}}}"
+        if rule.event_id:
+            query_prefix = f'Get-WinEvent -FilterHashTable @{{LogName = "{rule.logsource.service}"; Id = {rule.event_id}}} | Read-WinEvent | '
         else:
-            query_prefix = f"Get-WinEvent -LogName {logname} | Read-WinEvent | "
-            query_suffix = f"Where-Object {{{query}}}"
-        return query_prefix + query_suffix
+            query_prefix = f'Get-WinEvent -LogName "{rule.logsource.service}" | Read-WinEvent | '
+        return query_prefix + f"Where-Object {{{query}}}"
 
     def finalize_output_default(self, queries: List[str]) -> str:
         return list(queries)

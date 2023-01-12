@@ -9,7 +9,7 @@ logsource:
 detection:
     selection:
         Foo: "bar"
-        eventid: 1111
+        EventID: 1234
     filter:
         TargetUserName:
         - 'Administrator'
