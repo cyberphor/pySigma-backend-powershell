@@ -93,8 +93,8 @@ class PowerShellBackend(TextQueryBackend):
                 return f'{arg.field} -ne "{arg.value}"'
 
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> str:
-        if rule.event_id:
-            query_prefix = f'Get-WinEvent -FilterHashTable @{{LogName = "{rule.logsource.service}"; Id = {rule.event_id}}} | Read-WinEvent | '
+        if hasattr(rule, "eventid"): 
+            query_prefix = f'Get-WinEvent -FilterHashTable @{{LogName = "{rule.logsource.service}"; Id = {rule.eventid}}} | Read-WinEvent | '
         else:
             query_prefix = f'Get-WinEvent -LogName "{rule.logsource.service}" | Read-WinEvent | '
         return query_prefix + f"Where-Object {{{query}}}"
