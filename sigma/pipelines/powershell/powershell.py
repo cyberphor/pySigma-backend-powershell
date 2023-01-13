@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
-from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition, MatchStringCondition
+from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition
 from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
 from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
 from sigma.rule import SigmaRule
@@ -15,6 +15,7 @@ class PromoteFieldToRuleComponentTransformation(Transformation):
         for detection in rule.detection.detections.values():
             for detection_item in detection.detection_items:
                 if detection_item.field == self.field:
+                    # TODO: address situations where the detection item has more than one value
                     setattr(rule, self.field.lower(), detection_item.value[0])
 
 def powershell_pipeline() -> ProcessingPipeline:

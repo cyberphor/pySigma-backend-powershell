@@ -10,10 +10,12 @@ def Sigma2PowerShell(path: str, show_errors: bool):
     return backend.convert(rule_collection = rules, output_format = "default")
 
 if "__main__" == __name__:
+    output_formats = ["default", "script", "subscription", "xpath", "xml"]
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", type = str, help = "path to Sigma rule(s)")
-    parser.add_argument("-o", "--output", type = str, help = "output format")
-    parser.add_argument("--show-errors", default = True, action = "store_false", help = "show rule errors")
+    parser.add_argument("-p", "--path", help = "path to Sigma rule(s)", type = str)
+    parser.add_argument("-o", "--output", choices = output_formats, default = "default", help = "output format", type = str)
+    parser.add_argument("-e", "--show-errors", action = "store_false", default = True,  help = "show rule errors")
     args = parser.parse_args()
     queries = Sigma2PowerShell(args.path, args.show_errors)
-    print("\n".join(queries))
+    if None not in queries:
+        print("\n".join(queries))

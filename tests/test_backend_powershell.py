@@ -22,7 +22,7 @@ def test_powershell_and_expression(powershell_backend: PowerShellBackend):
                     field: value
                 condition: selection
         """)
-    ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { $_.field = "value" }']
+    ) == ['Get-WinEvent -FilterHashTable @{LogName = "Security"; Id = 4688} | Read-WinEvent | Where-Object {$_.field -eq "value"}']
 
 def test_powershell_or_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(

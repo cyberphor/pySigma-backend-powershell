@@ -5,7 +5,6 @@ description: Detects nothing this rule was developed to test pySigma PowerShell 
 author: Victor Fernandez III
 logsource:
     product: windows
-    service: security
 detection:
     selection:
         Foo: "bar"

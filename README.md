@@ -1,3 +1,6 @@
+![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg)
+![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.github.com/cyberphor/7da37b293a0cee47e57de7aaa0668e52/raw/cyberphor-pySigma-backend-powershell.json)
+![Status](https://img.shields.io/badge/Status-pre--release-orange)
 # pySigma PowerShell Backend
 Uses pySigma to convert Sigma rules into PowerShell queries.
 
