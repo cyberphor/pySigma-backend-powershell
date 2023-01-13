@@ -1,7 +1,7 @@
-import argparse
 from sigma.collection import SigmaCollection
 from sigma.pipelines.powershell import powershell_pipeline
 from sigma.backends.powershell import PowerShellBackend
+import argparse
 
 def Sigma2PowerShell(path: str, show_errors: bool):
     rules = SigmaCollection.load_ruleset(inputs = [path])
