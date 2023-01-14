@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
-from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition
+from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition, RuleContainsDetectionItemCondition
 from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
-from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
+from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DetectionItemFailureTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
 from sigma.rule import SigmaRule
 import re
 
@@ -35,12 +35,20 @@ def powershell_pipeline() -> ProcessingPipeline:
             for logsource, channel in windows_logsource_mapping.items()
         ] + [
             ProcessingItem(
-                field_name_conditions = [IncludeFieldCondition(fields = re.compile("EventID", re.IGNORECASE).pattern, type = "re")],
+                # Field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
+                field_name_conditions = [IncludeFieldCondition(
+                    fields = [re.compile(pattern = "EventID", flags = re.IGNORECASE)],
+                    type = "re"
+                )],
                 transformation = PromoteFieldToRuleComponentTransformation(field = "EventID")
             )
         ] + [
             ProcessingItem(
-                field_name_conditions = [IncludeFieldCondition(fields = re.compile("EventID", re.IGNORECASE).pattern, type = "re")],
+                # Field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
+                rule_conditions = [RuleContainsDetectionItemCondition(
+                    field = re.compile(pattern = "EventID", flags = re.IGNORECASE),
+                    value = re.compile(pattern = ".*", flags = re.IGNORECASE)
+                )],
                 transformation = DropDetectionItemTransformation()
             )
         ] + [

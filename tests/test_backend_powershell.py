@@ -41,7 +41,7 @@ def test_powershell_or_expression(powershell_backend: PowerShellBackend):
                     fieldB: valueB
                 condition: 1 of sel*
         """)
-    ) == ['Get-WinEvent -LogName "security" | Read-WinEvent | Where-Object { $_.fieldA = "valueA" -or $_.fieldB = "valueB" }']
+    ) == ['Get-WinEvent -FilterHashTable @{LogName = "Security"; Id = 4688} | Read-WinEvent | Where-Object {$_.fieldA -eq "valueA" -or $_.fieldB -eq "valueB"}']
 
 def test_powershell_and_or_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -49,8 +49,8 @@ def test_powershell_and_or_expression(powershell_backend: PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
                 sel:
                     fieldA:
@@ -61,7 +61,7 @@ def test_powershell_and_or_expression(powershell_backend: PowerShellBackend):
                         - valueB2
                 condition: sel
         """)
-    ) == [None]
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {($_.fieldA -eq "valueA1" -or $_.fieldA -eq "valueA2") -and ($_.fieldB -eq "valueB1" -or $_.fieldB -eq "valueB2")}']
 
 def test_powershell_or_and_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -69,8 +69,8 @@ def test_powershell_or_and_expression(powershell_backend: PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
                 sel1:
                     fieldA: valueA1
@@ -80,7 +80,7 @@ def test_powershell_or_and_expression(powershell_backend: PowerShellBackend):
                     fieldB: valueB2
                 condition: 1 of sel*
         """)
-    ) == [None]
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {($_.fieldA -eq "valueA1" -and $_.fieldB -eq "valueB1") -or ($_.fieldA -eq "valueA2" -and $_.fieldB -eq "valueB2")}']
 
 def test_powershell_in_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -88,8 +88,8 @@ def test_powershell_in_expression(powershell_backend: PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
                 sel:
                     fieldA:
@@ -106,8 +106,8 @@ def test_powershell_regex_query(powershell_backend: PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
                 sel:
                     fieldA|re: foo.*bar
@@ -122,8 +122,8 @@ def test_powershell_cidr_query(powershell_backend: PowerShellBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
                 sel:
                     field|cidr: 192.168.0.0/16
@@ -137,8 +137,8 @@ def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBac
             title: Test
             status: test
             logsource:
-                category: test_category
-                product: test_product
+                product: windows
+                service: security
             detection:
                 sel:
                     field name: value

@@ -5,10 +5,11 @@ description: Detects nothing this rule was developed to test pySigma PowerShell 
 author: Victor Fernandez III
 logsource:
     product: windows
+    service: security
 detection:
     selection:
         Foo: "bar"
-        EventID: 1234
+        eventID: 1234
     filter:
         TargetUserName:
         - 'Administrator'
