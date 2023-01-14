@@ -1,6 +1,6 @@
 import re
 
-foo = re.compile(pattern = '\\w*\\s\\w*', flags = re.IGNORECASE)
+foo = re.compile(pattern = 'eventid', flags = re.IGNORECASE)
 
-if foo.match("event ID"):
+if foo.match("eventID"):
   print("True")

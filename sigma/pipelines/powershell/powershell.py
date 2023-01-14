@@ -37,17 +37,18 @@ def powershell_pipeline() -> ProcessingPipeline:
             ProcessingItem(
                 # Field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
                 field_name_conditions = [IncludeFieldCondition(
-                    fields = [re.compile(pattern = "EventID", flags = re.IGNORECASE)],
+                    fields = ["[eE][vV][eE][nN][tT][iI][dD]"],
                     type = "re"
                 )],
+                # don't specify field, just handle the logic like
                 transformation = PromoteFieldToRuleComponentTransformation(field = "EventID")
             )
         ] + [
             ProcessingItem(
                 # Field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
-                rule_conditions = [RuleContainsDetectionItemCondition(
-                    field = re.compile(pattern = "EventID", flags = re.IGNORECASE),
-                    value = re.compile(pattern = ".*", flags = re.IGNORECASE)
+                field_name_conditions = [IncludeFieldCondition(
+                    fields = ["[eE][vV][eE][nN][tT][iI][dD]"],
+                    type = "re"
                 )],
                 transformation = DropDetectionItemTransformation()
             )
@@ -57,3 +58,11 @@ def powershell_pipeline() -> ProcessingPipeline:
             )
         ]
     )
+
+"""
+                rule_conditions = [RuleContainsDetectionItemCondition(
+                    field = re.compile(pattern = "EventID", flags = re.IGNORECASE),
+                    value = re.compile(pattern = ".*", flags = re.IGNORECASE)
+                )],
+                transformation = DropDetectionItemTransformation()
+"""
