@@ -1,10 +1,10 @@
 ![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg)
 ![Status](https://img.shields.io/badge/Status-pre--release-orange)
 # pySigma PowerShell Backend
-Uses pySigma to convert Sigma rules into PowerShell queries.
+The pySigma PowerShell backend uses [pySigma](https://github.com/SigmaHQ/pySigma) to convert [Sigma rules](https://github.com/SigmaHQ/sigma) into PowerShell queries. It was designed to be used in conjunction with the [Soap](https://github.com/cyberphor/Soap) PowerShell module (i.e., the `Read-WinEvent` function). 
 
 ## Overview
-pySigma-backend-powershell provides two Python packages:
+The pySigma PowerShell backend includes two Python packages:
 * `sigma.pipelines.powershell`: normalizes Sigma rules for PowerShell.
 * `sigma.backends.powershell`: declares the `PowerShellBackend` class and multiple output methods.
 

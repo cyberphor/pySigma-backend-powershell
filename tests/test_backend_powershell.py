@@ -98,7 +98,7 @@ def test_powershell_in_expression(powershell_backend: PowerShellBackend):
                         - valueC*
                 condition: sel
         """)
-    ) == [None]
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {$_.fieldA -eq "valueA" -or $_.fieldA -eq "valueB" -or $_.fieldA -like "valueC*"}']
 
 def test_powershell_regex_query(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(

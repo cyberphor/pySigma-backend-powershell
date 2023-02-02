@@ -7,6 +7,8 @@ from sigma.types import SigmaCompareExpression
 from typing import ClassVar, Dict, Tuple, Pattern, List, Union
 import re
 
+output_formats = ["default", "script", "subscription", "xpath", "xml"]
+
 class PowerShellBackend(TextQueryBackend):
     name: ClassVar[str] = "PowerShell backend"
     formats: Dict[str, str] = { 
@@ -18,10 +20,10 @@ class PowerShellBackend(TextQueryBackend):
     }
     precedence: ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
     group_expression: ClassVar[str] = "({expr})"
-    token_separator: str = " "
-    or_token: ClassVar[str] = "-or"
-    and_token: ClassVar[str] = "-and"
-    not_token: ClassVar[str] = "-not"
+    parenthesize: bool = True # put parenthesis around all expressions; PowerShell is not strict about field precedence.
+    or_token: ClassVar[str] = " -or "
+    and_token: ClassVar[str] = " -and "
+    not_token: ClassVar[str] = " -not "
     eq_token: ClassVar[str] = " -eq "
     field_quote: ClassVar[str] = ""
     field_quote_pattern: ClassVar[Pattern] = re.compile("^\\w+$")
