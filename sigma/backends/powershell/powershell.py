@@ -20,10 +20,11 @@ class PowerShellBackend(TextQueryBackend):
     }
     precedence: ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
     group_expression: ClassVar[str] = "({expr})"
-    parenthesize: bool = True # put parenthesis around all expressions; PowerShell is not strict about field precedence.
-    or_token: ClassVar[str] = " -or "
-    and_token: ClassVar[str] = " -and "
-    not_token: ClassVar[str] = " -not "
+    parenthesize: bool = True # put parenthesis around all expressions  since PowerShell is not strict about field precedence.
+    token_separator: ClassVar[str] = " "
+    or_token: ClassVar[str] = "-or"
+    and_token: ClassVar[str] = "-and"
+    not_token: ClassVar[str] = "-not"
     eq_token: ClassVar[str] = " -eq "
     field_quote: ClassVar[str] = ""
     field_quote_pattern: ClassVar[Pattern] = re.compile("^\\w+$")
@@ -37,7 +38,7 @@ class PowerShellBackend(TextQueryBackend):
     add_escaped: ClassVar[str] = "\\"
     filter_chars: ClassVar[str] = ""
     bool_values: ClassVar[Dict[bool, str]] = {True: "$true", False:"$false"}
-    startswith_expression: ClassVar[str] = "{field} -like {value}*"
+    startswith_expression: ClassVar[str] = "{field} -like {value}"
     endswith_expression: ClassVar[str] = "endswith"
     contains_expression: ClassVar[str] = "{field} -contains {value}"
     wildcard_match_expression: ClassVar[str] = "{field} -match {value}"
