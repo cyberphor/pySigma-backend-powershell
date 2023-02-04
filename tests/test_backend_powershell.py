@@ -114,7 +114,7 @@ def test_powershell_regex_query(powershell_backend: PowerShellBackend):
                     fieldB: foo
                 condition: sel
         """)
-    ) == [None]
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {$_.fieldA -match "foo.*bar" -and $_.fieldB -eq "foo"}']
 
 def test_powershell_cidr_query(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -129,7 +129,7 @@ def test_powershell_cidr_query(powershell_backend: PowerShellBackend):
                     field|cidr: 192.168.0.0/16
                 condition: sel
         """)
-    ) == [None]
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {}']
 
 def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -144,7 +144,7 @@ def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBac
                     field name: value
                 condition: sel
         """)
-    ) == [None]
+    ) == [ValueError]
 
 def test_powershell_format1_output(powershell_backend: PowerShellBackend):
     """Test for output format format1."""
