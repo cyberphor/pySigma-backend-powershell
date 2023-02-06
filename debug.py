@@ -1,6 +1,8 @@
 import re
 
-foo = re.compile(pattern = 'eventid', flags = re.IGNORECASE)
+field = re.compile(pattern = "\\w+ +\\w+")
 
-if foo.match("eventID"):
+if field.match("field  name"):
   print("True")
+else:
+  print("False")

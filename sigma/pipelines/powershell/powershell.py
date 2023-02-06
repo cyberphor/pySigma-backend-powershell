@@ -1,15 +1,14 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
-from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition, RuleContainsDetectionItemCondition
+from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition
 from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
-from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DetectionItemFailureTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
+from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
 from sigma.rule import SigmaRule
-import re
 
 @dataclass
-class PromoteFieldToRuleComponentTransformation(Transformation):
-    """Promote a field from the rule detection item level to the rule component level."""
-    field: str = field(default = None)
+class PromoteDetectionItemTransformation(Transformation):
+    """Promote a detection item to the rule component level."""
+    field: str
     def apply(self, pipeline, rule: SigmaRule) -> None:
         super().apply(pipeline, rule)
         for detection in rule.detection.detections.values():
@@ -17,6 +16,13 @@ class PromoteFieldToRuleComponentTransformation(Transformation):
                 if detection_item.field == self.field:
                     # TODO: address situations where the detection item has more than one value
                     setattr(rule, self.field.lower(), detection_item.value[0])
+
+@dataclass
+class ReplaceFieldTransformation(Transformation):
+    """Replace a detection item field name matched by regular expresssion with a replacement string."""
+    field: str
+    def apply(self, pipeline, rule: SigmaRule) -> None:
+        super().apply(pipeline, rule)
 
 def powershell_pipeline() -> ProcessingPipeline:
     return ProcessingPipeline(
@@ -29,23 +35,31 @@ def powershell_pipeline() -> ProcessingPipeline:
             )
         ] + [
             ProcessingItem(
+                field_name_conditions = [IncludeFieldCondition(
+                    fields = ["\\w+ \\w+"],
+                    type = "re"
+                )],
+                transformation = ReplaceFieldTransformation(field = "field with white space")
+            )
+        ] + [
+            ProcessingItem(
                 rule_conditions = [logsource_windows(logsource)],
                 transformation = ChangeLogsourceTransformation(service = channel)
             )
             for logsource, channel in windows_logsource_mapping.items()
         ] + [
             ProcessingItem(
-                # Field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
+                # field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
                 field_name_conditions = [IncludeFieldCondition(
                     fields = ["[eE][vV][eE][nN][tT][iI][dD]"],
                     type = "re"
                 )],
-                # don't specify field, just handle the logic like
-                transformation = PromoteFieldToRuleComponentTransformation(field = "EventID")
+                # TODO: change logic to automatically grab the same field specified for IncludeFieldCondition
+                transformation = PromoteDetectionItemTransformation(field = "EventID")
             )
         ] + [
             ProcessingItem(
-                # Field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
+                # field name conditions are evaluated against fields in detection items and in the component-level field list of a rule
                 field_name_conditions = [IncludeFieldCondition(
                     fields = ["[eE][vV][eE][nN][tT][iI][dD]"],
                     type = "re"
@@ -58,11 +72,3 @@ def powershell_pipeline() -> ProcessingPipeline:
             )
         ]
     )
-
-"""
-                rule_conditions = [RuleContainsDetectionItemCondition(
-                    field = re.compile(pattern = "EventID", flags = re.IGNORECASE),
-                    value = re.compile(pattern = ".*", flags = re.IGNORECASE)
-                )],
-                transformation = DropDetectionItemTransformation()
-"""

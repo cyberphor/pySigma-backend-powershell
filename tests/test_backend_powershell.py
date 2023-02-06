@@ -2,6 +2,7 @@ import pytest
 from sigma.pipelines.powershell import powershell_pipeline
 from sigma.backends.powershell import PowerShellBackend
 from sigma.collection import SigmaCollection
+from sigma.exceptions import SigmaFeatureNotSupportedByBackendError
 
 @pytest.fixture
 def powershell_backend():
@@ -126,10 +127,11 @@ def test_powershell_cidr_query(powershell_backend: PowerShellBackend):
                 service: security
             detection:
                 sel:
-                    field|cidr: 192.168.0.0/16
+                    EventID: 5156
+                    SourceAddress|cidr: 10.0.0.0/16
                 condition: sel
         """)
-    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {}']
+    ) == ['Get-WinEvent -FilterHashTable @{LogName = "Security"; Id = 5156} | Read-WinEvent | Where-Object {$_.SourceAddress -like "10.0.*"}']
 
 def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -144,7 +146,7 @@ def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBac
                     field name: value
                 condition: sel
         """)
-    ) == [ValueError]
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {$_.fieldname -eq "value"}']
 
 def test_powershell_format1_output(powershell_backend: PowerShellBackend):
     """Test for output format format1."""
