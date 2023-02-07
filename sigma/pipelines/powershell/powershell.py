@@ -4,6 +4,7 @@ from sigma.processing.conditions import IncludeFieldCondition, LogsourceConditio
 from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
 from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
 from sigma.rule import SigmaRule
+from re import compile
 
 @dataclass
 class PromoteDetectionItemTransformation(Transformation):
@@ -18,11 +19,14 @@ class PromoteDetectionItemTransformation(Transformation):
                     setattr(rule, self.field.lower(), detection_item.value[0])
 
 @dataclass
-class ReplaceFieldTransformation(Transformation):
-    """Replace a detection item field name matched by regular expresssion with a replacement string."""
-    field: str
+class RemoveWhiteSpaceTransformation(Transformation):
+    """Remove white space characters from detection item field names."""
     def apply(self, pipeline, rule: SigmaRule) -> None:
         super().apply(pipeline, rule)
+        for detection in rule.detection.detections.values():
+            for detection_item in detection.detection_items:
+                if compile(pattern = "\\w+ +\\w+").match(detection_item.field):
+                    detection_item.field = detection_item.field.replace(" ", "")
 
 def powershell_pipeline() -> ProcessingPipeline:
     return ProcessingPipeline(
@@ -32,14 +36,6 @@ def powershell_pipeline() -> ProcessingPipeline:
                 rule_condition_negation = True,
                 rule_conditions = [LogsourceCondition(product = "windows")],
                 transformation = RuleFailureTransformation("Product not supported.")
-            )
-        ] + [
-            ProcessingItem(
-                field_name_conditions = [IncludeFieldCondition(
-                    fields = ["\\w+ \\w+"],
-                    type = "re"
-                )],
-                transformation = ReplaceFieldTransformation(field = "field with white space")
             )
         ] + [
             ProcessingItem(
@@ -65,6 +61,10 @@ def powershell_pipeline() -> ProcessingPipeline:
                     type = "re"
                 )],
                 transformation = DropDetectionItemTransformation()
+            )
+        ] + [
+            ProcessingItem(
+                transformation = RemoveWhiteSpaceTransformation()
             )
         ] + [
             ProcessingItem(
