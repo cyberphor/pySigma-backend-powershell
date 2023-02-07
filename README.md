@@ -1,6 +1,7 @@
 ![Tests](https://github.com/cyberphor/pySigma-backend-powershell/actions/workflows/test.yml/badge.svg)
-![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/cyberphor/de97a2bb83939d86f9d8f64470a61c4b/raw)
+![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/cyberphor/d3f7db7182e7819f3748e64a2ab2d126/raw/cyberphor-pySigma-backend-powershell.json)
 ![Status](https://img.shields.io/badge/Status-pre--release-orange)
+
 # pySigma PowerShell Backend
 The pySigma PowerShell backend uses [pySigma](https://github.com/SigmaHQ/pySigma) to convert [Sigma rules](https://github.com/SigmaHQ/sigma) into PowerShell queries. It was designed to be used in conjunction with the [Soap](https://github.com/cyberphor/Soap) PowerShell module (i.e., the `Read-WinEvent` function). 
 
