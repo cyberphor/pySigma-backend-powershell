@@ -30,12 +30,12 @@ class PowerShellBackend(TextQueryBackend):
     field_quote_pattern: ClassVar[Pattern] = re.compile("^\\w+$")
     field_escape: ClassVar[str] = "\\"
     field_escape_quote: ClassVar[bool] = False
-    #field_escape_pattern: ClassVar[Pattern] = re.compile("\\s")
+    field_escape_pattern: ClassVar[Pattern] = re.compile("\\s")
     str_quote: ClassVar[str] = '"'
-    #escape_char: ClassVar[str] = "\\"
+    escape_char: ClassVar[str] = "\\"
     wildcard_multi: ClassVar[str] = "*"
     wildcard_single: ClassVar[str] = "*"
-    #add_escaped: ClassVar[str] = "\\"
+    add_escaped: ClassVar[str] = "\\"
     filter_chars: ClassVar[str] = ""
     bool_values: ClassVar[Dict[bool, str]] = {True: "$true", False:"$false"}
     startswith_expression: ClassVar[str] = "{field} -like {value}"
