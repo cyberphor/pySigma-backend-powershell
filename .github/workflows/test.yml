@@ -36,7 +36,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
-          gistID: 7da37b293a0cee47e57de7aaa0668e52
+          gistID: d3f7db7182e7819f3748e64a2ab2d126
           filename: cyberphor-pySigma-backend-powershell.json
           label: Coverage
           message: ${{ env.COVERAGE }}
