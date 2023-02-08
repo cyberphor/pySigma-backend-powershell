@@ -62,7 +62,7 @@ def test_powershell_and_or_expression(powershell_backend: PowerShellBackend):
                         - valueB2
                 condition: sel
         """)
-    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {($_.fieldA -eq "valueA1" -or $_.fieldA -eq "valueA2") -and ($_.fieldB -eq "valueB1" -or $_.fieldB -eq "valueB2")}']
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {($_.fieldA -in ("valueA1", "valueA2")) -and ($_.fieldB -in ("valueB1", "valueB2"))}']
 
 def test_powershell_or_and_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
@@ -100,6 +100,9 @@ def test_powershell_in_expression(powershell_backend: PowerShellBackend):
                 condition: sel
         """)
     ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {$_.fieldA -eq "valueA" -or $_.fieldA -eq "valueB" -or $_.fieldA -like "valueC*"}']
+    # TODO: 
+    # achieve this ($_.fieldA -in ("valueA", "valueB") -or ($_.fieldA -like "valueC*")
+    # would also involve re-writing how cidr expressions are converted
 
 def test_powershell_regex_query(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(

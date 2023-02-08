@@ -25,7 +25,7 @@ class RemoveWhiteSpaceTransformation(Transformation):
         super().apply(pipeline, rule)
         for detection in rule.detection.detections.values():
             for detection_item in detection.detection_items:
-                if compile(pattern = "\\w+ +\\w+").match(detection_item.field):
+                if compile(pattern = "\\w+\\s+\\w+").match(detection_item.field):
                     detection_item.field = detection_item.field.replace(" ", "")
 
 def powershell_pipeline() -> ProcessingPipeline:
