@@ -5,9 +5,7 @@ from sigma.conversion.state import ConversionState
 from sigma.rule import SigmaRule
 from sigma.types import SigmaCompareExpression
 from typing import ClassVar, Dict, Tuple, Pattern, List, Union
-import re
-
-output_formats = ["default", "script", "subscription", "xpath", "xml"]
+from re import compile
 
 class PowerShellBackend(TextQueryBackend):
     name: ClassVar[str] = "PowerShell backend"
@@ -27,10 +25,10 @@ class PowerShellBackend(TextQueryBackend):
     not_token: ClassVar[str] = "-not"
     eq_token: ClassVar[str] = " -eq "
     field_quote: ClassVar[str] = ""
-    field_quote_pattern: ClassVar[Pattern] = re.compile("^\\w+$")
+    field_quote_pattern: ClassVar[Pattern] = compile("^\\w+$")
     field_escape: ClassVar[str] = "\\"
     field_escape_quote: ClassVar[bool] = False
-    field_escape_pattern: ClassVar[Pattern] = re.compile("\\s")
+    field_escape_pattern: ClassVar[Pattern] = compile("\\s")
     str_quote: ClassVar[str] = '"'
     escape_char: ClassVar[str] = "\\"
     wildcard_multi: ClassVar[str] = "*"

@@ -1,6 +1,6 @@
 from sigma.collection import SigmaCollection
 from sigma.pipelines.powershell import powershell_pipeline
-from sigma.backends.powershell import PowerShellBackend, output_formats
+from sigma.backends.powershell import PowerShellBackend
 import argparse
 
 def Sigma2PowerShell(path: str, show_errors: bool):
@@ -12,7 +12,7 @@ def Sigma2PowerShell(path: str, show_errors: bool):
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path", help = "path to Sigma rule(s)", type = str)
-    parser.add_argument("-o", "--output", choices = output_formats, default = "default", help = "output format", type = str)
+    # parser.add_argument("-o", "--output", choices = output_formats, default = "default", help = "output format", type = str)
     parser.add_argument("-e", "--show-errors", action = "store_false", default = True,  help = "show rule errors")
     args = parser.parse_args()
     queries = Sigma2PowerShell(args.path, args.show_errors)
