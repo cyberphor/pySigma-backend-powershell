@@ -1,0 +1,10 @@
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection:
+    Image|endswith: '\wscript.exe'
+    Initiated: 'true'
+    DestinationPort:
+      - 25
+  condition: selection

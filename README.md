@@ -20,7 +20,13 @@ It currently supports the following output formats:
 ## Testing
 ```python
 python -m pip install --user pytest
-python -m pytest
+python -m pytest                                                                  # test all functions
+python -m pytest tests/test_backend_powershell.py::test_powershell_and_expression # test a specific function
+```
+
+## Updating to the Latest Version of pySigma
+```python
+python -m poetry add pysigma@latest
 ```
 
 ## References

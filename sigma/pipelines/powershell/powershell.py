@@ -2,9 +2,8 @@ from dataclasses import dataclass
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition
 from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
-from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
+from sigma.processing.transformations import AddConditionTransformation, AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DetectionItemFailureTransformation, DropDetectionItemTransformation, FieldMappingTransformation, RuleFailureTransformation, SetStateTransformation, Transformation
 from sigma.rule import SigmaRule
-from re import compile
 
 @dataclass
 class PromoteDetectionItemTransformation(Transformation):
@@ -18,16 +17,6 @@ class PromoteDetectionItemTransformation(Transformation):
                     # TODO: address situations where the detection item has more than one value
                     setattr(rule, self.field.lower(), detection_item.value[0])
 
-@dataclass
-class RemoveWhiteSpaceTransformation(Transformation):
-    """Remove white space characters from detection item field names."""
-    def apply(self, pipeline, rule: SigmaRule) -> None:
-        super().apply(pipeline, rule)
-        for detection in rule.detection.detections.values():
-            for detection_item in detection.detection_items:
-                if compile(pattern = "\\w+\\s+\\w+").match(detection_item.field):
-                    detection_item.field = detection_item.field.replace(" ", "")
-
 def powershell_pipeline() -> ProcessingPipeline:
     return ProcessingPipeline(
         name = "PowerShell pipeline",
@@ -35,7 +24,7 @@ def powershell_pipeline() -> ProcessingPipeline:
             ProcessingItem(
                 rule_condition_negation = True,
                 rule_conditions = [LogsourceCondition(product = "windows")],
-                transformation = RuleFailureTransformation("Product not supported.")
+                transformation = RuleFailureTransformation(message = "Product not supported.")
             )
         ] + [
             ProcessingItem(
@@ -64,11 +53,7 @@ def powershell_pipeline() -> ProcessingPipeline:
             )
         ] + [
             ProcessingItem(
-                transformation = RemoveWhiteSpaceTransformation()
-            )
-        ] + [
-            ProcessingItem(
-                transformation = AddFieldnamePrefixTransformation("$_.")
+                transformation = AddFieldnamePrefixTransformation(prefix = "$_.")
             )
         ]
     )
