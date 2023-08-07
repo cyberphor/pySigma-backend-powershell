@@ -1,6 +1,6 @@
 logsource:
-  category: network_connection
   product: windows
+  category: network_connection
 detection:
   selection:
     Image|endswith: '\wscript.exe'

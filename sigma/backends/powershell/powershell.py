@@ -53,7 +53,7 @@ class PowerShellBackend(TextQueryBackend):
     escape_char: ClassVar[str] = "\\"    # Escaping character for special characrers inside string
     wildcard_multi: ClassVar[str] = "*"     # Character used as multi-character wildcard
     wildcard_single: ClassVar[str] = "*"     # Character used as single-character wildcard
-    add_escaped: ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
+    add_escaped: ClassVar[str] = ""    # Characters quoted in addition to wildcards and string quote
     filter_chars: ClassVar[str] = ""      # Characters filtered
     bool_values: ClassVar[Dict[bool, str]] = {   # Values to which boolean values are mapped.
         True: "$true",
@@ -122,7 +122,7 @@ class PowerShellBackend(TextQueryBackend):
     convert_and_as_in: ClassVar[bool] = True                    # Convert AND as in-expression
     in_expressions_allow_wildcards: ClassVar[bool] = False      # Values in list can contain wildcards. If set to False (default) only plain values are converted into in-expressions.
     field_in_list_expression: ClassVar[str] = "{field} {op} ({list})"  # Expression for field in list of values as format string with placeholders {field}, {op} and {list}
-    or_in_operator: ClassVar[str] = "in"               # Operator used to convert OR into in-expressions. Must be set if convert_or_as_in is set
+    or_in_operator: ClassVar[str] = "-in"               # Operator used to convert OR into in-expressions. Must be set if convert_or_as_in is set
     and_in_operator: ClassVar[str] = "contains-all"    # Operator used to convert AND into in-expressions. Must be set if convert_and_as_in is set
     list_separator: ClassVar[str] = ", "               # List element separator
 

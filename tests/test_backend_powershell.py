@@ -99,7 +99,7 @@ def test_powershell_in_expression(powershell_backend: PowerShellBackend):
                         - valueC*
                 condition: sel
         """)
-    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {$_.fieldA -eq "valueA" -or $_.fieldA -eq "valueB" -or $_.fieldA -like "valueC*"}']
+    ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {$_.fieldA -eq "valueA" -or $_.fieldA -eq "valueB" -or $_.fieldA.StartsWith("valueC")}']
     # TODO: 
     # achieve this ($_.fieldA -in ("valueA", "valueB") -or ($_.fieldA -like "valueC*")
     # would also involve re-writing how cidr expressions are converted
@@ -134,7 +134,7 @@ def test_powershell_cidr_query(powershell_backend: PowerShellBackend):
                     SourceAddress|cidr: 10.0.0.0/16
                 condition: sel
         """)
-    ) == ['Get-WinEvent -FilterHashTable @{LogName = "Security"; Id = 5156} | Read-WinEvent | Where-Object {$_.SourceAddress -like "10.0.*"}']
+    ) == ['Get-WinEvent -FilterHashTable @{LogName = "Security"; Id = 5156} | Read-WinEvent | Where-Object {$_.SourceAddress.StartsWith("10.0.")}']
 
 def test_powershell_field_name_with_whitespace(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
