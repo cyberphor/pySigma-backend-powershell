@@ -83,6 +83,12 @@ def test_powershell_or_and_expression(powershell_backend: PowerShellBackend):
         """)
     ) == ['Get-WinEvent -LogName "Security" | Read-WinEvent | Where-Object {($_.fieldA -eq "valueA1" -and $_.fieldB -eq "valueB1") -or ($_.fieldA -eq "valueA2" -and $_.fieldB -eq "valueB2")}']
 
+# TODO: add test_powershell_not_expression
+
+# TODO: add test_powershell_not_and_expression
+
+# TODO: add test_powershell_and_not_expression
+
 def test_powershell_in_expression(powershell_backend: PowerShellBackend):
     assert powershell_backend.convert(
         SigmaCollection.from_yaml("""

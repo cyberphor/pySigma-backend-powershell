@@ -23,7 +23,7 @@ class PowerShellBackend(TextQueryBackend):
         ProcessingPipeline
     )
 
-    precedence: ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
+    precedence: ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionAND, ConditionOR, ConditionNOT)
     group_expression: ClassVar[str] = "({expr})"
     parenthesize: bool = True 
 
