@@ -2,20 +2,30 @@ from dataclasses import dataclass
 from sigma.pipelines.common import logsource_windows, logsource_windows_network_connection, windows_logsource_mapping 
 from sigma.processing.conditions import IncludeFieldCondition, LogsourceCondition
 from sigma.processing.pipeline import ProcessingPipeline, ProcessingItem
-from sigma.processing.transformations import AddConditionTransformation, AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DetectionItemFailureTransformation, DropDetectionItemTransformation, FieldMappingTransformation, RuleFailureTransformation, SetStateTransformation, Transformation
+from sigma.processing.transformations import AddFieldnamePrefixTransformation, ChangeLogsourceTransformation, DropDetectionItemTransformation, RuleFailureTransformation, Transformation
 from sigma.rule import SigmaRule
 
 @dataclass
 class PromoteDetectionItemTransformation(Transformation):
-    """Promote a detection item to the rule component level."""
+    """Promotes a detection item to the rule component level."""
     field: str
     def apply(self, pipeline, rule: SigmaRule) -> None:
         super().apply(pipeline, rule)
         for detection in rule.detection.detections.values():
             for detection_item in detection.detection_items:
                 if detection_item.field == self.field:
-                    # TODO: address situations where the detection item has more than one value
                     setattr(rule, self.field.lower(), detection_item.value[0])
+
+@dataclass
+class RemoveWhiteSpaceTransformation(Transformation):
+    """Removes white space characters from detection item field names."""
+    def apply(self, pipeline, rule: SigmaRule) -> None:
+        super().apply(pipeline, rule)
+        for detection in rule.detection.detections.values():
+            for detection_item in detection.detection_items:
+                if detection_item.field != None:
+                    if len(detection_item.field.split()) > 1:
+                        detection_item.field = "".join(detection_item.field.split())
 
 def powershell_pipeline() -> ProcessingPipeline:
     return ProcessingPipeline(
@@ -36,6 +46,10 @@ def powershell_pipeline() -> ProcessingPipeline:
             ProcessingItem(
                 rule_conditions = [logsource_windows_network_connection()], # TODO: scale this so all sysmon event categories are covered
                 transformation = ChangeLogsourceTransformation(service = windows_logsource_mapping['sysmon']) 
+            )
+        ] + [
+            ProcessingItem(
+                transformation = RemoveWhiteSpaceTransformation()
             )
         ] + [
             ProcessingItem(

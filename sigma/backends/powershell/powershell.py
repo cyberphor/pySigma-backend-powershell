@@ -23,8 +23,6 @@ class PowerShellBackend(TextQueryBackend):
         ProcessingPipeline
     )
 
-    # Operator precedence: tuple of Condition{AND,OR,NOT} in order of precedence.
-    # The backend generates grouping if required
     precedence: ClassVar[Tuple[ConditionItem, ConditionItem, ConditionItem]] = (ConditionNOT, ConditionAND, ConditionOR)
     group_expression: ClassVar[str] = "({expr})"
     parenthesize: bool = True 
