@@ -1,4 +1,4 @@
-title: Mimikatz Use
+title: Mimikatz Usage
 id: 06d71506-7beb-4f22-8888-e2e5e2ca7fd8
 status: test
 description: This method detects mimikatz keywords in different Eventlogs (some of them only appear in older Mimikatz version that are however still used by different threat groups)
