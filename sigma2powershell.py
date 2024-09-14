@@ -11,9 +11,26 @@ def Sigma2PowerShell(path: str, show_errors: bool, foo: str):
 
 if "__main__" == __name__:
     parser = ArgumentParser()
-    parser.add_argument("-p", help="path to Sigma rule(s)", type=str)
-    parser.add_argument("-o", choices=["default", "script"], default="default", help="output format", type=str)
-    parser.add_argument("-e", action="store_false", default=True,  help="show rule errors")
+    parser.add_argument(
+        "-p",
+        type=str,
+        required=True,
+        help="path to Sigma rule(s)",
+        metavar="<PATH_TO_RULESET>"
+    )
+    parser.add_argument(
+        "-o",
+        default="default",
+        type=str,
+        choices=["default", "script"],
+        help="output format",
+    )
+    parser.add_argument(
+        "-e",
+        action="store_false",
+        default=True,
+        help="show rule errors",
+    )
     args = parser.parse_args()
     queries = Sigma2PowerShell(args.p, args.e, args.o)
     if None not in queries:

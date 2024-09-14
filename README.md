@@ -17,6 +17,11 @@ It currently supports the following output formats:
 - [ ] xpath: XML strings
 - [ ] subscription: Windows event subscriptions 
 
+## Usage
+```bash
+poetry run python sigma2powershell.py -p rules/
+```
+
 ## Testing
 ```python
 python -m pip install --user pytest
