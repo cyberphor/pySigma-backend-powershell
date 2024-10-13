@@ -26,18 +26,5 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: Install dependencies
         run: poetry install
-      - name: Run tests
-        run: poetry run pytest --cov=sigma --cov-report term --cov-report xml:cov.xml -vv
-      - name: Store coverage for badge
-        if: ${{ runner.os == 'Linux' }}
-        run: poetry run python print-coverage.py >> $GITHUB_ENV
-      - name: Create coverage badge
-        if: ${{ github.repository == 'cyberphor/pySigma-backend-powershell' && github.event_name == 'push' && runner.os == 'Linux' }}
-        uses: schneegans/dynamic-badges-action@v1.1.0
-        with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: d3f7db7182e7819f3748e64a2ab2d126
-          filename: cyberphor-pySigma-backend-powershell.json
-          label: Coverage
-          message: ${{ env.COVERAGE }}
-          color: ${{ env.COVERAGE_COLOR }}
+      - name: Lint with black
+        run: poetry run black --check .

@@ -9,6 +9,7 @@ from typing import ClassVar, Dict, Tuple, Pattern, Any, Optional
 
 class PowerShellBackend(TextQueryBackend):
     """PowerShell backend."""
+
     name: ClassVar[str] = "PowerShell backend"
     formats: Dict[str, str] = {
         "default": "PowerShell queries",
