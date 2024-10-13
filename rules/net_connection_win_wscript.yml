@@ -7,6 +7,6 @@ detection:
   selection:
     Image|endswith: '\wscript.exe'
     Initiated: 'true'
-    Destination Port:
+    DestinationPort:
       - 25
   condition: selection

@@ -6,3 +6,5 @@ cov.xml
 dist/
 docs/_build
 backup/
+dataset/
+rules/
