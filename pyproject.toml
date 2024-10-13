@@ -12,6 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.11"
 pysigma = "^0.11.14"
+pytest = "^8.3.3"
 
 [tool.poetry.scripts]
 sigma2powershell = "scripts.sigma2powershell:main"
